@@ -1,7 +1,7 @@
 library(dplyr)
 library(ggplot2)
 
-meta <- read.csv("datarow/metanalise.csv", header = T)
+meta <- read.csv("data-raw/metanalise.csv", header = T)
 View(meta)
 
 meta_fil <- meta %>%
