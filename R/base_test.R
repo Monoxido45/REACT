@@ -10,7 +10,7 @@ base_test <- function(CI, tol, hip = 0, plot = TRUE, verbose = TRUE){
   # designing pragmatic interval
   p_int <- c(hip - tol, hip + tol)
 
-  # analysing wheter CI falls into pragmatic region, or not or not entirely
+  # analysing whether CI falls into pragmatic region, or not or not entirely
   idxs <- findInterval(CI, p_int)
 
   # if both values are equal it means that the CI is entirely inside or outside the pragmatic region
