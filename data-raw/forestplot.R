@@ -1,6 +1,6 @@
 library(dplyr)
 library(ggplot2)
-
+# importing data
 meta <- read.csv("data-raw/metanalise.csv", header = T)
 View(meta)
 
@@ -20,70 +20,11 @@ meta_fil %>%
   geom_vline(xintercept = 1, linetype = 'dashed') +
   scale_color_manual(values=c("green", "red"))
 
-
-NNT_test <- function(confidence, NNT, event_e, n_e, event_c, n_c,
-                     plot = F, verbose = T){
-  epsilon <- c(-1/NNT, 1/NNT)
-  prob_e <- event_e/n_e
-  prob_c <- event_c/n_c
-  var_e <- prob_e*(1-prob_e)/n_e
-  var_c <- prob_c*(1-prob_c)/n_c
-  prob_diff <- event_e/n_e - event_c/n_c
-  v_diff <- var_e + var_c
-  CI <- prob_diff +
-    qnorm(c((1-confidence)/2, 1-(1-confidence)/2))*sqrt(v_diff)
-  idxs <- findInterval(CI, epsilon)
-  test_outcome <- ifelse(all(idxs == 1), "accept",
-                         ifelse(all(idxs == 0) | all(idxs == 2),
-                                "reject", "remain agnostic"))
-  if(verbose){
-    cat("REACT results:\n")
-    cat("Pragmatic lower bound: ", format(epsilon[1], digits = 3, nsmall = 2, scientific = FALSE))
-    cat("\n")
-    cat("Pragmatic upper bound: ", format(epsilon[2], digits = 3, nsmall = 2, scientific = FALSE))
-    cat("\n")
-    cat("Confidence interval:")
-    cat("\n")
-    cat("lower bound: ", paste0(round(CI[1], digits = 3)),
-        "\nupper bound: ",paste0(round(CI[2],digits = 3)), sep = "")
-    cat("\n")
-    cat("REACT conclusion:\n")
-    message("Based on the provided confidence interval we ", test_outcome,
-            ifelse(test_outcome == "remain agnostic", ".", " the null hypothesis."))
-  }
-  if(plot){
-    p <- ggplot2::ggplot()+
-      ggplot2::coord_cartesian(ylim=c(-0.1, 0.1)) +
-      ggplot2::geom_segment(ggplot2::aes(x = CI[1], y = 0,
-                                         xend = CI[2], yend = 0), linewidth = 0.75)+
-      ggplot2::annotate('rect', xmin = epsilon[1], xmax = epsilon[2],
-                        ymin = -0.05, ymax = 0.05, alpha=.3, fill='blue')+
-      ggplot2::theme_bw()+
-      ggplot2::theme(
-        panel.border = ggplot2::element_blank(),
-        panel.grid.major = ggplot2::element_blank(),
-        panel.grid.minor = ggplot2::element_blank(),
-        axis.line = ggplot2::element_line(colour = "black"),
-        axis.text.y = ggplot2::element_blank(),
-        axis.ticks.y = ggplot2::element_blank())+
-      ggplot2::labs(y = "",
-                    x = "Parameter values",
-                    title = "Hypothesis testing acceptance region and confidence interval")
-
-    show(p)
-
-  }
-
-  return(list(CI = CI,
-              pragmatic = epsilon,
-              test_outcome = test_outcome))
-}
-
+# testing NNT based test for difference of proportions
 obj <- REACT::NNT_indep_test(alpha = 0.05, NNT = 3,
          event_e = 77, n_e = 257, event_c = 8, n_c = 47)
 
 REACT:::plot.simple_REACT(obj)
-
 
 
 
