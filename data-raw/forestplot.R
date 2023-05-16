@@ -11,6 +11,7 @@ meta_fil <- meta %>%
 
 View(meta_fil)
 
+# replicating forest plot from paper
 meta_fil %>%
   mutate(color = ifelse(apply(cbind(meta_fil$lowerte, meta_fil$upperte),
                               1, function(x) findInterval(1, x)) == 1,
@@ -27,8 +28,9 @@ obj <- REACT::NNT_indep_test(alpha = 0.05, NNT = 3,
 REACT:::plot.simple_REACT(obj)
 
 
-
+# graphical analysis
 alpha <- .05
+# changing meta analysis object
 meta_fil <- meta %>%
   filter(ne != 0 & nc != 0) %>%
   distinct() %>%
@@ -62,6 +64,11 @@ NNT <- 3
 epsilon <- 1/NNT
 idxs <- matrix(findInterval(as.matrix(meta_fil[c("CIlower", "CIupper")]),
                c(-epsilon,epsilon)), ncol = 2)
+
+IC_mat <- as.matrix(meta_fil[c("CIlower", "CIupper")])
+REACT::REACT_forestplot(IC_mat, NNT = NNT)
+
+
 
 meta_fil %>%
   mutate(color = factor(ifelse(idxs[,1] == 1 & idxs[,2] == 1, 0,

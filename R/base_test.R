@@ -74,7 +74,8 @@ plot.simple_REACT <- function(obj){
                   x = "Parameter values",
                   title = "Hypothesis testing acceptance region and confidence interval")
 
-  show(p)
+  methods::show(p)
+
   invisible(p)
 }
 
