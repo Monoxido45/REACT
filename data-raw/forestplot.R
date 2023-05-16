@@ -30,9 +30,26 @@ alpha <- .05
 # changing meta analysis object
 meta_fil <- meta %>%
   filter(ne != 0 & nc != 0) %>%
+  filter(ncpooled != 614) %>% #removing error
   distinct() %>%
   mutate(dist = ifelse(is.na(evente), "Student-T", "Binomial"),
-         meane = ifelse(dist == "Binomial", evente/ne, meane),
+         study_class = ifelse(dist == "Student-T", 3,
+                              ifelse(nepooled == 18224, 1, 2)))
+# getting pooled estimates
+pooled <- meta_fil %>%
+  mutate(sume = meane*ne, sumc = meanc*nc,
+         SQe = sde^2*(ne-1), SQc = sdc^2*(nc-1)) %>%
+  group_by(dist, study_class) %>%
+  summarise(ne = sum(ne), evente = sum(evente),
+            nc = sum(nc), eventc = sum(eventc),
+            meane = sum(sume)/sum(ne), meanc = sum(sumc)/sum(nc),
+            sde = sqrt(sum(SQe)/(sum(ne))),
+            sdc = sqrt(sum(SQc)/(sum(nc)))) %>%
+  ungroup() %>%
+  mutate(studlab = "Pooled")
+# combining with original dataset and obtaining CI
+meta_fil <- bind_rows(meta_fil, pooled) %>%
+  mutate(meane = ifelse(dist == "Binomial", evente/ne, meane),
          meanc = ifelse(dist == "Binomial", eventc/nc, meanc),
          sde = ifelse(dist == "Binomial", sqrt(abs(meane*(1-meane)/ne)), sde),
          sdc = ifelse(dist == "Binomial", sqrt(abs(meanc*(1-meanc)/nc)), sdc),
@@ -50,38 +67,20 @@ meta_fil <- meta %>%
          CIupper = mean + ifelse(dist=="Binomial",
                                  qnorm(1 - alpha/2)*sd,
                                  qt(1 - alpha/2, df)*sd)
-         ) %>%
-  select(studlab, dist, ne, meane, sde, nc, meanc, sdc,
-         mean, sd, df, CIlower, CIupper,
-         lowerte, upperte, te) %>%
-  distinct()
+  ) %>%
+  select(studlab, dist, study_class, ne, meane, sde, nc, meanc, sdc,
+         mean, sd, df, CIlower, CIupper)
 
-
-NNT <- 3
-epsilon <- 1/NNT
-idxs <- matrix(findInterval(as.matrix(meta_fil[c("CIlower", "CIupper")]),
-               c(-epsilon,epsilon)), ncol = 2)
-
+#Forestplot
+NNT <- 10
 CI_mat <- as.matrix(meta_fil[c("CIlower", "CIupper")])
-REACT::REACT_forestplot(CI_mat, NNT = NNT, study_names = meta_fil$studlab,
-                        point_estim = meta_fil$mean)
-
-
-
-meta_fil %>%
-  mutate(color = factor(ifelse(idxs[,1] == 1 & idxs[,2] == 1, 0,
-                               ifelse((idxs[,1] == 0 & idxs[,2] == 0) |
-                                        (idxs[,1] == 2 & idxs[,2] == 2), 1,
-                                      1/2)),
-                        levels = c(0, 1/2, 1),
-                        labels = c("accept", "agnostic", "reject"))) %>%
-  ggplot(aes(y = studlab, x = mean, xmin = CIlower, xmax = CIupper, col = color)) +
-  geom_point(fill = NA) +
-  annotate('rect', xmin = -epsilon, xmax = epsilon,
-           ymin = 0, ymax = 13, alpha=.5, fill='lightblue') +
-  geom_point() +
-  geom_errorbarh(height=.1) +
-  geom_vline(xintercept = 0, linetype = 'dashed') +
-  scale_color_manual(labels = c("accept", "agnostic", "reject"),
-                     values=c("green", "yellow", "red"))
-
+g <- REACT::REACT_forestplot(CI_mat, NNT = NNT, study_names = meta_fil$studlab,
+                             point_estim = meta_fil$mean)
+g$data$studlab <- relevel(g$data$studlab, "Pooled")
+g$data <- bind_cols(g$data,
+                    study_class = factor(meta_fil$study_class,
+                                         levels = c(1,2,3),
+                                         labels = c("Follow-up (Binomial)",
+                                                    "Pharmacotherapy (Binomial)",
+                                                    "Follow-up (T)")))
+g + facet_grid(. ~ study_class, scales="free")

@@ -35,19 +35,20 @@ REACT_forestplot <- function(CI_matrix,
     }
   }
   meta_data <- data.frame(CIlower = CI_matrix[,1],
-                              CIupper = CI_matrix[,2],
-                              points = point_estim,
-                              color = cols,
-                              studlab = study_names)
+                          CIupper = CI_matrix[,2],
+                          points = point_estim,
+                          color = cols,
+                          studlab = factor(study_names, levels = rev(sort(unique(study_names)))))
   p <- meta_data %>%
     ggplot2::ggplot(ggplot2::aes(y = studlab, xmin = CIlower, xmax = CIupper, col = color)) +
     ggplot2::geom_errorbarh(height=.2, linewdith = 1) +
     {if(!all(is.na(meta_data$points))) ggplot2::geom_point(ggplot2::aes(x = points))} +
     ggplot2::annotate('rect', xmin = hip - epsilon, xmax = hip + epsilon,
-                      ymin = 0, ymax = nrow(CI_matrix) + 1, alpha=.2, fill='dodgerblue3') +
+                      ymin = 0, ymax = nrow(CI_matrix), alpha=.2, fill='dodgerblue3') +
     ggplot2::geom_vline(xintercept = hip, linetype = 'dashed') +
-    ggplot2::scale_color_manual(labels = c("accept", "agnostic", "reject"),
-                                values=c("darkgreen", "goldenrod", "darkred"))
+    ggplot2::scale_color_manual(labels = c("Accept", "Agnostic", "Reject"),
+                                values=c("darkgreen", "goldenrod", "darkred")) +
+    labs(title = "NNT-based REACT Forestplot", x = "Mean Difference", y = "Study", color = "Decision")
 
   methods::show(p)
 
