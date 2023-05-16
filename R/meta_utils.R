@@ -48,7 +48,9 @@ REACT_forestplot <- function(CI_matrix,
     ggplot2::geom_vline(xintercept = hip, linetype = 'dashed') +
     ggplot2::scale_color_manual(labels = c("Accept", "Agnostic", "Reject"),
                                 values=c("darkgreen", "goldenrod", "darkred")) +
-    labs(title = "NNT-based REACT Forestplot", x = "Mean Difference", y = "Study", color = "Decision")
+    ggplot2::theme_bw() +
+    ggplot2::labs(title = "NNT-based REACT Forestplot",
+                  x = "Mean Difference", y = "Study", color = "Decision")
 
   methods::show(p)
 
