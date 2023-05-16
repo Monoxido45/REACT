@@ -79,9 +79,13 @@ NNT_test <- function(confidence, NNT, event_e, n_e, event_c, n_c,
               test_outcome = test_outcome))
 }
 
-NNT_test(confidence = 0.95, NNT = 3,
-         event_e = 77, n_e = 257, event_c = 8, n_c = 47,
-         plot = T)
+obj <- REACT::NNT_indep_test(alpha = 0.05, NNT = 3,
+         event_e = 77, n_e = 257, event_c = 8, n_c = 47)
+
+REACT:::plot.simple_REACT(obj)
+
+
+
 
 alpha <- .05
 meta_fil <- meta %>%
