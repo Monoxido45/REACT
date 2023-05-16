@@ -2,14 +2,11 @@ library(dplyr)
 library(ggplot2)
 # importing data
 meta <- read.csv("data-raw/metanalise.csv", header = T)
-View(meta)
 
 meta_fil <- meta %>%
   filter(ne != 0 & nc != 0) %>%
   distinct() %>%
   select(studlab, te, lowerte, upperte)
-
-View(meta_fil)
 
 # replicating forest plot from paper
 meta_fil %>%
@@ -65,8 +62,9 @@ epsilon <- 1/NNT
 idxs <- matrix(findInterval(as.matrix(meta_fil[c("CIlower", "CIupper")]),
                c(-epsilon,epsilon)), ncol = 2)
 
-IC_mat <- as.matrix(meta_fil[c("CIlower", "CIupper")])
-REACT::REACT_forestplot(IC_mat, NNT = NNT)
+CI_mat <- as.matrix(meta_fil[c("CIlower", "CIupper")])
+REACT::REACT_forestplot(CI_mat, NNT = NNT, study_names = meta_fil$studlab,
+                        point_estim = meta_fil$mean)
 
 
 
