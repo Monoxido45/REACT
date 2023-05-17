@@ -2,15 +2,15 @@
 #' @description REACT function for uni parametric precise hypothesis testing
 #' @param CI parameter confidence interval for testing
 #' @param tol tolerance to build pragmatic hypothesis. It can be also an assymetric tolerance (vector of length 2)
-#' @param hip precise hypothesis of interest - default is 0
+#' @param hyp precise hypothesis of interest - default is 0
 #' @param verbose set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)
 #' @export
-base_test <- function(CI, tol, hip = 0, verbose = TRUE){
+base_test <- function(CI, tol, hyp = 0, verbose = TRUE){
   # designing pragmatic interval
   if(length(tol) == 1){
-    p_int <- c(hip - tol, hip + tol)
+    p_int <- c(hyp - tol, hyp + tol)
   }else{
-    p_int <- c(hip - tol[1], hip + tol[2])
+    p_int <- c(hyp + tol[1], hyp + tol[2])
   }
 
   # analysing whether CI falls into pragmatic region, or not or not entirely

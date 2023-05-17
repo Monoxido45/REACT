@@ -68,19 +68,132 @@ meta_fil <- bind_rows(meta_fil, pooled) %>%
                                  qnorm(1 - alpha/2)*sd,
                                  qt(1 - alpha/2, df)*sd)
   ) %>%
-  select(studlab, dist, study_class, ne, meane, sde, nc, meanc, sdc,
-         mean, sd, df, CIlower, CIupper)
+  filter(dist != "Student-T") %>%
+  select(studlab, study_class, ne, evente, meane, sde, nc, eventc, meanc, sdc,
+         mean, sd, CIlower, CIupper)
 
 #Forestplot
-NNT <- 10
+NNT <- c(-10, 6)
 CI_mat <- as.matrix(meta_fil[c("CIlower", "CIupper")])
 g <- REACT::REACT_forestplot(CI_mat, NNT = NNT, study_names = meta_fil$studlab,
                              point_estim = meta_fil$mean)
 g$data$studlab <- relevel(g$data$studlab, "Pooled")
 g$data <- bind_cols(g$data,
                     study_class = factor(meta_fil$study_class,
-                                         levels = c(1,2,3),
-                                         labels = c("Follow-up (Binomial)",
-                                                    "Pharmacotherapy (Binomial)",
-                                                    "Follow-up (T)")))
+                                         levels = c(1,2),
+                                         labels = c("Follow-up",
+                                                    "Pharmacotherapy")))
 g + facet_grid(. ~ study_class, scales="free")
+
+
+
+
+################################################################################
+
+# NNT forest plot (Bayesian, prior: Beta(0, 0))
+
+library(coda)
+
+my_meta <- meta_fil
+
+alphae <- my_meta$evente
+betae <- my_meta$ne - my_meta$evente
+alphac <- my_meta$eventc
+betac <- my_meta$nc - my_meta$eventc
+
+N <- 1000000
+NNT_sim <- matrix(NA, ncol = dim(my_meta)[1], nrow = N)
+colnames(NNT_sim) <- my_meta$studlab
+
+set.seed(42)
+for(i in 1:dim(my_meta)[1]){
+  NNT_sim[,i] <- 1/(rbeta(N, alphac[i], betac[i]) -
+                      rbeta(N, alphae[i], betae[i]))
+}
+
+NNT_MC <- mcmc(NNT_sim)
+
+my_int <- HPDinterval(NNT_MC)
+my_int
+rm(NNT_MC)
+
+my_ints <- matrix(NA, ncol = 4, nrow = dim(my_int)[1])
+for(i in 1:dim(my_int)[1]){
+  where <- findInterval(0, my_int[i,])
+  if(where == 2){ #Both negative
+    my_ints[i,1] <- my_int[i,1]
+    my_ints[i,2] <- my_int[i,2]
+  } else if(where == 1){ #Negative and positive
+    my_ints[i,1] <- my_int[i,1]
+    my_ints[i,2] <- -1
+    my_ints[i,3] <- 1
+    my_ints[i,4] <- my_int[i,2]
+  } else{
+    my_ints[i,3] <- my_int[i,1]
+    my_ints[i,4] <- my_int[i,2]
+  }
+}
+
+colnames(my_ints) <- paste("int", 1:4, sep = "")
+
+my_meta <- bind_cols(my_meta, my_ints)
+
+NNT <- c(-10, 6)
+
+my_fun <- function(x){
+  if(all(is.na(x))) return(c(NA, NA))
+  return(findInterval(NNT, x))
+}
+
+c1 <- rowSums(t(apply(my_meta[c("int1", "int2")], 1, my_fun)))/2
+c2 <- rowSums(t(apply(my_meta[c("int3", "int4")], 1, my_fun)))/2
+
+cols <- ifelse(!is.na(c1) & !is.na(c2),
+               ifelse(c1%%1 != 0 | c2%%1 != 0 |
+                        (c1 == 1 & c2 %in% c(0,2)) |
+                        (c2 == 1 & c1 %in% c(0,2)), 1/2,
+                      ifelse(c1 == 1 & c2 == 1, 1, 0)),
+               ifelse(!is.na(c1),
+                      ifelse(c1%%1 == 0, ifelse(c1 == 1, 1, 0), 1/2),
+                      ifelse(c2%%1 == 0, ifelse(c2 == 1, 1, 0), 1/2)
+               )
+)
+cols <- factor(cols, levels = c(0, 1/2, 1),
+               labels = c("Accept", "Agnostic", "Reject"))
+
+meta_data <- data.frame(CIlower1 = my_meta$int1,
+                        CIupper1 = my_meta$int2,
+                        CIlower2 = my_meta$int3,
+                        CIupper2 = my_meta$int4,
+                        points = 1/-my_meta$mean,
+                        color = cols,
+                        study_class = factor(my_meta$study_class,
+                                             levels = c(1,2,3),
+                                             labels = c("Follow-up",
+                                                        "Pharmacotherapy",
+                                                        "Follow-up (T)")),
+                        studlab = relevel(
+                          factor(my_meta$studlab,
+                                 levels = rev(sort(unique(my_meta$studlab)))),
+                          "Pooled"
+                        ))
+meta_data %>%
+  ggplot2::ggplot(ggplot2::aes(y = studlab, col = color)) +
+  ggplot2::geom_errorbarh(aes(xmin = CIlower1, xmax = CIupper1), height=.2, linewdith = 1) +
+  ggplot2::geom_errorbarh(aes(xmin = CIlower2, xmax = CIupper2), height=.2, linewdith = 1) +
+  ggplot2::geom_point(ggplot2::aes(x = points)) +
+  ggplot2::annotate('rect', xmin = -Inf, xmax = NNT[1],
+                    ymin = 0, ymax = nrow(meta_data), alpha=.2, fill='dodgerblue3') +
+  ggplot2::annotate('rect', xmin = NNT[2], xmax = Inf,
+                    ymin = 0, ymax = nrow(meta_data), alpha=.2, fill='dodgerblue3') +
+  ggplot2::annotate('rect', xmin = -1, xmax = 1,
+                    ymin = 0, ymax = nrow(meta_data), alpha=.2, fill='red') +
+  ggplot2::geom_vline(xintercept = NNT[1], linetype = 'dashed') +
+  ggplot2::geom_vline(xintercept = NNT[2], linetype = 'dashed') +
+  ggplot2::scale_color_manual(values=c("Accept" = "darkgreen",
+                                       "Agnostic" = "goldenrod",
+                                       "Reject" = "darkred")) +
+  ggplot2::theme_bw() +
+  ggplot2::labs(title = "NNT-based REACT Forestplot",
+                x = "NNT Estimate", y = "Study", color = "Decision") +
+  coord_cartesian(xlim=c(-30, 30)) + facet_grid(~study_class, scales="free")

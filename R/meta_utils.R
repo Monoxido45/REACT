@@ -5,17 +5,23 @@
 #' @param point_estim Logical or vector of point estimations related each study parameter. If TRUE,
 #' it uses the mean of the confidence intervals as the point estimate. Default is FALSE.
 #' @param study_names Vector of study names. Default is NULL.
-#' @param hip precise hypothesis of interest - default is 0.
+#' @param hyp precise hypothesis of interest - default is 0.
 #' @param NNT Number Necessary to Treat used to build pragmatic hypothesis.
 #' @export
 REACT_forestplot <- function(CI_matrix,
                              NNT,
-                             hip = 0,
+                             hyp = 0,
                              point_estim = FALSE,
                              study_names = NULL){
-  epsilon <- 1/NNT
+  tol <- 1/NNT
+  if(length(tol) == 1){
+    p_int <- c(hyp - tol, hyp + tol)
+  }else{
+    p_int <- c(hyp + tol[1], hyp + tol[2])
+  }
+
   idxs <- matrix(findInterval(CI_matrix,
-                              c(hip - epsilon,hip + epsilon)), ncol = 2)
+                              p_int), ncol = 2)
 
   cols <- factor(ifelse(idxs[,1] == 1 & idxs[,2] == 1, 0,
                         ifelse((idxs[,1] == 0 & idxs[,2] == 0) |
@@ -43,11 +49,12 @@ REACT_forestplot <- function(CI_matrix,
     ggplot2::ggplot(ggplot2::aes(y = studlab, xmin = CIlower, xmax = CIupper, col = color)) +
     ggplot2::geom_errorbarh(height=.2, linewdith = 1) +
     {if(!all(is.na(meta_data$points))) ggplot2::geom_point(ggplot2::aes(x = points))} +
-    ggplot2::annotate('rect', xmin = hip - epsilon, xmax = hip + epsilon,
+    ggplot2::annotate('rect', xmin = p_int[1], xmax = p_int[2],
                       ymin = 0, ymax = nrow(CI_matrix), alpha=.2, fill='dodgerblue3') +
-    ggplot2::geom_vline(xintercept = hip, linetype = 'dashed') +
-    ggplot2::scale_color_manual(labels = c("Accept", "Agnostic", "Reject"),
-                                values=c("darkgreen", "goldenrod", "darkred")) +
+    ggplot2::geom_vline(xintercept = hyp, linetype = 'dashed') +
+    ggplot2::scale_color_manual(values=c("Accept" = "darkgreen",
+                                         "Agnostic" = "goldenrod",
+                                         "Reject" = "darkred")) +
     ggplot2::theme_bw() +
     ggplot2::labs(title = "NNT-based REACT Forestplot",
                   x = "Mean Difference", y = "Study", color = "Decision")
