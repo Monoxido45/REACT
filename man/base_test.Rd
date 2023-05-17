@@ -4,14 +4,14 @@
 \alias{base_test}
 \title{Uni parametric Agnostic Confidence-based precise test}
 \usage{
-base_test(CI, tol, hip = 0, verbose = TRUE)
+base_test(CI, tol, hyp = 0, verbose = TRUE)
 }
 \arguments{
 \item{CI}{parameter confidence interval for testing}
 
 \item{tol}{tolerance to build pragmatic hypothesis. It can be also an assymetric tolerance (vector of length 2)}
 
-\item{hip}{precise hypothesis of interest - default is 0}
+\item{hyp}{precise hypothesis of interest - default is 0}
 
 \item{verbose}{set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)}
 }

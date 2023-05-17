@@ -25,7 +25,8 @@ obj <- REACT::NNT_indep_test(alpha = 0.05, NNT = 3,
 REACT:::plot.simple_REACT(obj)
 
 
-# graphical analysis
+
+# Graphical analysis ------------------------------------------------------
 alpha <- .05
 # changing meta analysis object
 meta_fil <- meta %>%
@@ -47,6 +48,7 @@ pooled <- meta_fil %>%
             sdc = sqrt(sum(SQc)/(sum(nc)))) %>%
   ungroup() %>%
   mutate(studlab = "Pooled")
+
 # combining with original dataset and obtaining CI
 meta_fil <- bind_rows(meta_fil, pooled) %>%
   mutate(meane = ifelse(dist == "Binomial", evente/ne, meane),
@@ -83,12 +85,23 @@ g$data <- bind_cols(g$data,
                                          levels = c(1,2),
                                          labels = c("Follow-up",
                                                     "Pharmacotherapy")))
-g + facet_grid(. ~ study_class, scales="free")
+
+# highlighting pooled
+bold.labels <- ifelse(levels(g$data$studlab) == "Pooled", "bold", "plain")
+
+highlight = function(x, pat, color="black", family="") {
+  ifelse(grepl(pat, x), glue::glue("<b style='font-family:{family}; color:{color}'>{x}</b>"), x)
+}
+
+g + facet_grid(. ~ study_class, scales="free") +
+  theme(axis.text.y = element_text(face = bold.labels))+
+  scale_y_discrete(labels= function(x) highlight(x, "Pooled", "black"))+
+  theme(axis.text.y= ggtext::element_markdown())
 
 
 
 
-################################################################################
+# Bayesian tests ----------------------------------------------------------
 
 # NNT forest plot (Bayesian, prior: Beta(0, 0))
 

@@ -2,28 +2,33 @@
 % Please edit documentation in R/meta_utils.R
 \name{REACT_forestplot}
 \alias{REACT_forestplot}
-\title{REACT forestplot}
+\title{REACT forestplot.}
 \usage{
 REACT_forestplot(
   CI_matrix,
   NNT,
-  hip = 0,
-  point_estim = NULL,
-  study_names = NULL
+  hyp = 0,
+  point_estim = FALSE,
+  study_names = NULL,
+  fail = FALSE
 )
 }
 \arguments{
 \item{CI_matrix}{Matrix of lower and upper bounds of confidence intervals related to each study
-with columns named CIlower and CIupper}
+with columns named CIlower and CIupper.}
 
-\item{NNT}{Number Necessary to Treat used to build pragmatic hypothesis}
+\item{NNT}{Number Necessary to Treat used to build pragmatic hypothesis.}
 
-\item{hip}{precise hypothesis of interest - default is 0}
+\item{hyp}{precise hypothesis of interest - default is 0.}
 
-\item{point_estim}{Vector of point estimations related each study parameter. Default is NULL}
+\item{point_estim}{Logical or vector of point estimations related to each study parameter. If TRUE,
+it uses the mean of the confidence intervals as the point estimate. Default is FALSE.}
 
-\item{study_names}{Vector of study names. Default is NULL}
+\item{study_names}{Vector of study names. Default is NULL.}
+
+\item{fail}{Boolean specifying whether the probabilities are for failure (TRUE) or success (FALSE).
+Default is FALSE.}
 }
 \description{
-REACT adapted forestplot for agnostic and pragmatic meta analysis data
+REACT adapted forestplot for agnostic and pragmatic meta analysis data.
 }
