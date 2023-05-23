@@ -35,8 +35,34 @@ meta_fil <- meta %>%
   distinct() %>%
   mutate(dist = ifelse(is.na(evente), "Student-T", "Binomial"),
          study_class = ifelse(dist == "Student-T", 3,
-                              ifelse(nepooled == 18224, 1, 2)))
-# getting pooled estimates
+                              ifelse(nepooled == 18224, 1, 2))) |>
+  # removing t-student studies
+  filter(study_class != 3)
+
+# getting pooled estimates with heteroscedasticity included
+# using {meta} mixed model random effects CI
+CI_s <- meta_fil$study_class %>% unique() %>%
+  purrr::map_dfr(function(x){
+    used_data <- meta_fil |> filter(study_class == x)
+
+    meta_model <- meta::metabin(evente,
+            ne,
+            eventc,
+            nc,
+            studlab,
+            data= used_data,
+            sm= "RD",
+            model.glmm = ("CM.AL"),
+            method = "Inverse")
+
+    lower <- meta_model %>% purrr::pluck("lower.random")
+    upper <- meta_model %>% purrr::pluck("upper.random")
+    point_estim <- meta_model %>% purrr::pluck("TE.random")
+
+    list(study_class = x, "CIlower" = lower, "CIupper" = upper, "mean" = point_estim)
+  })
+
+# old procedure
 pooled <- meta_fil %>%
   mutate(sume = meane*ne, sumc = meanc*nc,
          SQe = sde^2*(ne-1), SQc = sdc^2*(nc-1)) %>%
@@ -71,11 +97,28 @@ meta_fil <- bind_rows(meta_fil, pooled) %>%
                                  qt(1 - alpha/2, df)*sd)
   ) %>%
   filter(dist != "Student-T") %>%
+  # changing CI for pooled
+  mutate(CIlower = case_when(
+    studlab == "Pooled" & study_class == 1 ~ CI_s$CIlower[1],
+    studlab == "Pooled" & study_class == 2 ~ CI_s$CIlower[2],
+    .default = CIlower
+  ),
+  CIupper = case_when(
+    studlab == "Pooled" & study_class == 1 ~ CI_s$CIupper[1],
+    studlab == "Pooled" & study_class == 2 ~ CI_s$CIupper[2],
+    .default = CIupper
+  ),
+  mean = case_when(
+    studlab == "Pooled" & study_class == 1 ~ CI_s$mean[1],
+    studlab == "Pooled" & study_class == 2 ~ CI_s$mean[2],
+    .default = mean
+  ))  %>%
+  # changing point estimation also
   select(studlab, study_class, ne, evente, meane, sde, nc, eventc, meanc, sdc,
          mean, sd, CIlower, CIupper)
 
 #Forestplot
-NNT <- c(-10, 6)
+NNT <- 6
 CI_mat <- as.matrix(meta_fil[c("CIlower", "CIupper")])
 g <- REACT::REACT_forestplot(CI_mat, NNT = NNT, study_names = meta_fil$studlab,
                              point_estim = meta_fil$mean)
