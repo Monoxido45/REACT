@@ -71,22 +71,21 @@ REACT_forestplot <- function(CI_matrix,
     ggplot2::scale_color_manual(values=c("Accept" = "darkgreen",
                                          "Agnostic" = "goldenrod",
                                          "Reject" = "darkred")) +
-    ggplot2::annotate("text", x = p_int[1] - 0.05,
+    ggplot2::annotate("text", x = p_int[1] - 0.1,
                       y = -1.5, label = "Favors Control",
                       colour = "orangered")+
     ggplot2::annotate("segment", x = hyp - 0.05, xend = arr_inf,
                       y = -1, yend = -1, colour = "orangered", size = 1, alpha=0.6,
                       arrow=arrow(length = ggplot2::unit(0.1, "inches")))+
-    ggplot2::annotate("text", x = p_int[2] + 0.05,
+    ggplot2::annotate("text", x = p_int[2] + 0.1,
                       y = -1.5, label = "Favors Treatment",
                       colour = "slateblue4")+
     ggplot2::annotate("segment", x = hyp + 0.05, xend = arr_sup,
                       y = -1, yend = -1, colour = "slateblue4", size = 1, alpha=0.6,
                       arrow=arrow(length = ggplot2::unit(0.1, "inches")))+
     ggplot2::theme_bw() +
-    ggplot2::theme(axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 25)))+
+    ggplot2::theme(axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 35)))+
     ggplot2::coord_cartesian(ylim=c(0 + 0.5, nrow(CI_matrix) - 0.5), clip = "off") +
-    ggplot2::scale_x_continuous(labels = scales::percent) +
     ggplot2::labs(title = "NNT-based REACT Forestplot",
                   x = "Mean Difference", y = "Study", color = "Decision")
 
