@@ -1,3 +1,11 @@
+#Context: Baby born underweight given potentially risky behavior from the mother
+#Objective: Test the relative risk of each factor to identify if any of them
+#           may not actually be harmful to baby's weight
+#Caveats: Extra care required to accept H0: RR = 1, region of equivalence has to
+#         be more restrictive (NNT = 100), CER unknown (setting CER = 1 to get a
+#         more conservative region).
+
+
 library(dplyr)
 library(ggplot2)
 library(lbreg)
@@ -17,7 +25,7 @@ Birth <- Birth |>
 # fixing CER as proposed in literature
 CER <- 0.1
 
-# fixing NNT as also proposd
+# fixing NNT as also proposed
 NNT <- 100
 
 
@@ -25,7 +33,7 @@ NNT <- 100
 mod <- lbreg(lowbw ~ ., data = Birth)
 
 # obtaing relative risk CI's
-rr_obj <- relrisk(mod)
+rr_obj <- relrisk(mod, alpha = 0.05)[-1, ] #Intercept removal
 
 # delimiting tolerance by RRR
 rrr <- 1/(NNT*CER)
@@ -81,8 +89,20 @@ p <- mod_data %>%
   ggplot2::theme(axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 35)))+
   ggplot2::coord_cartesian(ylim=c(0 + 0.5, nrow(mod_data) - 0.5),
                            clip = "off") +
-  ggplot2::labs(title = "RRR-based REACT Forestplot",
+  ggplot2::labs(title = "RRR-based REACT Procedure",
                 x = "Relative Risk", y = "Covariate", color = "Decision")
 
 methods::show(p)
 
+################################################################################
+
+library(lbreg)
+data(Birth)
+
+mod <- lbreg(lowbw ~ ., data = Birth)
+RR_CI <- relrisk(mod, alpha = 0.05)[-1, ]
+
+cov_names <- c("Alcohol Consumption", "Smoking", "Social Class")
+
+REACT_RRplot(CI_matrix = RR_CI[,2:3], NNT = 100,
+             point_estim = RR_CI[,1], covar_names = cov_names)
