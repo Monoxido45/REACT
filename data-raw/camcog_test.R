@@ -5,6 +5,7 @@ library(ggforce)
 # importing data
 camcog <- read.csv("data-raw/CAMCOG.csv")
 camcog |> count(Diagnostico)
+my_labs <- (camcog |> count(Diagnostico))$Diagnostico
 
 # different counts for each group of diagnostic
 # computing means for each group
@@ -18,7 +19,7 @@ mu <- stats$mu
 plot_list <- list()
 c <- 1
 alpha <- 0.05
-delta <- 10
+delta <- 15
 
 # testing ggplot2
 new_cov <- var_cov[c(1, 2), c(1, 2)]
@@ -87,8 +88,8 @@ for(i in 1:(nrow(var_cov) - 1)){
       geom_abline(intercept = -delta, linetype = "dashed")+
       coord_cartesian(xlim = c(new_mu[1] - mu_dif - delta, new_mu[1] + mu_dif + delta),
                       ylim = c(new_mu[2] - mu_dif - delta, new_mu[2] + mu_dif + delta))+
-      labs(x = paste0("x_", i),
-           y = paste0("x_", j))
+      labs(x = bquote(mu[.(my_labs[i])]),
+           y = bquote(mu[.(my_labs[j])]))
 
     c = c + 1
   }
