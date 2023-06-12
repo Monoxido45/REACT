@@ -96,29 +96,30 @@ meta_fil <- bind_rows(meta_fil, pooled) %>%
                                  qnorm(1 - alpha/2)*sd,
                                  qt(1 - alpha/2, df)*sd)
   ) %>%
-  filter(dist != "Student-T") %>%
+  filter(dist != "Student-T")
   # changing CI for pooled
-  mutate(CIlower = case_when(
-    studlab == "Pooled" & study_class == 1 ~ CI_s$CIlower[1],
-    studlab == "Pooled" & study_class == 2 ~ CI_s$CIlower[2],
-    .default = CIlower
-  ),
-  CIupper = case_when(
-    studlab == "Pooled" & study_class == 1 ~ CI_s$CIupper[1],
-    studlab == "Pooled" & study_class == 2 ~ CI_s$CIupper[2],
-    .default = CIupper
-  ),
-  mean = case_when(
-    studlab == "Pooled" & study_class == 1 ~ CI_s$mean[1],
-    studlab == "Pooled" & study_class == 2 ~ CI_s$mean[2],
-    .default = mean
-  ))  %>%
+meta_fil <- meta_fil %>%
+  mutate(
+    CIlower = ifelse(studlab == "Pooled" & study_class == 1,
+                     CI_s$CIlower[1],
+                     ifelse(studlab == "Pooled" & study_class == 2,
+                            CI_s$CIlower[2], CIlower)),
+    CIupper = ifelse(studlab == "Pooled" & study_class == 1,
+                     CI_s$CIupper[1],
+                     ifelse(studlab == "Pooled" & study_class == 2,
+                            CI_s$CIupper[2], CIupper)),
+    mean = ifelse(studlab == "Pooled" & study_class == 1,
+                  CI_s$mean[1],
+                  ifelse(studlab == "Pooled" & study_class == 2,
+                         CI_s$mean[2], mean))
+  ) %>%
   # changing point estimation also
   select(studlab, study_class, ne, evente, meane, sde, nc, eventc, meanc, sdc,
          mean, sd, CIlower, CIupper)
 
+
 #Forestplot
-NNT <- 6
+NNT <- c(-0, 6)
 CI_mat <- as.matrix(meta_fil[c("CIlower", "CIupper")])
 g <- REACT::REACT_forestplot(CI_mat, NNT = NNT, study_names = meta_fil$studlab,
                              point_estim = meta_fil$mean)
