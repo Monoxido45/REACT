@@ -12,6 +12,7 @@ RoxygenNote: 7.2.3
 URL: https://github.com/Monoxido45/REACT
 BugReports: https://github.com/Monoxido45/REACT/issues
 Imports: 
+    DescTools,
     ggplot2,
     magrittr,
     scales
