@@ -4,7 +4,7 @@
 \alias{m_comparisons}
 \title{REACT for multiple parameters comparisons with logical consistency}
 \usage{
-m_comparisons(alpha = 0.05, nrow = NA, ncol = NA, par, f_matrix)
+m_comparisons(alpha = 0.05, nrow = NA, ncol = NA, delta, par, f_matrix)
 }
 \arguments{
 \item{alpha}{alpha level (default is 0.05)}
@@ -14,6 +14,8 @@ m_comparisons(alpha = 0.05, nrow = NA, ncol = NA, par, f_matrix)
 
 \item{ncol}{Number of columns for multiple plotting. If NA, we choose based on vector length
 (default is NA)}
+
+\item{delta}{delta to build pragmatics.}
 
 \item{par}{vector of point estimates of each parameter}
 
