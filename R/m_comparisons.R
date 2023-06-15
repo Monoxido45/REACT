@@ -4,6 +4,7 @@
 #' differences $|\theta_i - \theta_j|$ between each pair of parameter $\theta_i$ and $\theta_j$.
 #' @param alpha alpha level (default is 0.05)
 #' @param par vector of point estimates of each parameter
+#' @param delta delta to build pragmatics.
 #' @param f_matrix fisher information matrix associated to the vector of parameters
 #' @param nrow Number of rows for multiple plotting. If NA, we choose based on vector length
 #' (default is NA)
@@ -12,7 +13,7 @@
 #' @param verbose set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)
 #' @export
 
-m_comparisons <- function(alpha = 0.05, nrow = NA, ncol = NA, par, f_matrix){
+m_comparisons <- function(alpha = 0.05, nrow = NA, ncol = NA, delta, par, f_matrix){
   # variance covariance matrix
   f_var_cov <- solve(f_matrix)
   # counting
@@ -74,7 +75,9 @@ m_comparisons <- function(alpha = 0.05, nrow = NA, ncol = NA, par, f_matrix){
                 fill = "dodgerblue3", alpha = 0.2) +
     ggplot2::facet_wrap(~label, scales = "free",
                         labeller = ggplot2::as_labeller(appender,
-                                        default = ggplot2::label_parsed))
+                                        default = ggplot2::label_parsed),
+                        nrow = nrow,
+                        ncol = ncol)
 
   show(p)
   invisible(p)
