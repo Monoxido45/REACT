@@ -6,6 +6,7 @@ library(latex2exp)
 # importing data
 camcog <- read.csv("data-raw/CAMCOG.csv")
 camcog |> count(Diagnostico)
+my_labs <- (camcog |> count(Diagnostico))$Diagnostico
 
 # different counts for each group of diagnostic
 # computing means for each group
@@ -19,7 +20,7 @@ mu <- stats$mu
 plot_list <- list()
 c <- 1
 alpha <- 0.05
-delta <- 10
+delta <- 15
 
 
 # Testing one ellipsis ----------------------------------------------------
@@ -83,10 +84,10 @@ for(i in 1:(nrow(var_cov) - 1)){
                                      rot = angle, plot = FALSE, nv = 1000)
 
     # points data
-    a = paste0("$\\theta_", i,  "$ and $\\theta_", j, "$")
+    tex_label = paste0("$\\theta_", i,  "$ and $\\theta_", j, "$")
     data_list[[c]] <- data.frame(x = points$x,
                               y = points$y,
-                              label = a)
+                              label = tex_label)
 
     c = c + 1
   }
