@@ -20,11 +20,10 @@ m_comparisons(alpha = 0.05, nrow = NA, ncol = NA, delta, par, f_matrix)
 \item{par}{vector of point estimates of each parameter}
 
 \item{f_matrix}{fisher information matrix associated to the vector of parameters}
-
-\item{verbose}{set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)}
 }
 \description{
 REACT plotting for multiple parameters comparisons. It uses asymptotic properties from
 MLE to plot pairwise confidence ellipsis and conclude if we reject, accept or remain agnostic about
 differences $|\theta_i - \theta_j|$ between each pair of parameter $\theta_i$ and $\theta_j$.
+Returns a plot list with all plottings of each comparisson.
 }

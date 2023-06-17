@@ -148,9 +148,9 @@ for(i in 1:(nrow(var_cov) - 1)){
 
     # plotting based on res
     # points data
-    tex_title = TeX(paste0("$\\theta_", i,  "$ and $\\theta_", j, "$"))
-    tex_xlab = TeX(paste0("$\\theta_", i, "$"))
-    tex_ylab = TeX(paste0("$\\theta_", j, "$"))
+    tex_title = TeX(paste0("$\\mu_", i,  "$ and $\\mu_", j, "$"))
+    tex_xlab = TeX(paste0("$\\mu_", i, "$"))
+    tex_ylab = TeX(paste0("$\\mu_", j, "$"))
 
     data_used <- data.frame(x = points$x,
                             y = points$y,
@@ -192,7 +192,7 @@ for(i in 1:(nrow(var_cov) - 1)){
   }
 }
 
-ggpubr::ggarrange(plotlist = plot_list, nrow = 1, ncol = 3, common.legend = TRUE)
+p <- ggpubr::ggarrange(plotlist = plot_list, nrow = 1, ncol = 3, common.legend = TRUE)
 
 
 
