@@ -3,7 +3,7 @@ library(ggplot2)
 library(ggforce)
 library(latex2exp)
 
-# importing data
+# importing data (CG - Control, DA - Alzheimer, CCL - MCI?)
 camcog <- read.csv("data-raw/CAMCOG.csv")
 camcog |> count(Diagnostico)
 my_labs <- (camcog |> count(Diagnostico))$Diagnostico
@@ -15,7 +15,7 @@ stats <- camcog |>
   summarise(mu = mean(CAMCOG, na.rm = TRUE),
             sigma = var(CAMCOG, na.rm = TRUE)/n())
 
-var_cov <- diag(stats$sigma, nrow = 3, ncol = 3)
+var_cov <- diag(stats$sigma, nrow = 3, ncol = 3) #1 - CCL, 2 - DA, 3 - GC
 mu <- stats$mu
 plot_list <- list()
 c <- 1
@@ -82,7 +82,8 @@ ggplot(aes(x = x, y = y), data = points_data) +
 # Multiple comparisons ----------------------------------------------------
 c = 1
 plot_list = list()
-names_vec <- c("MCI", "AD", "Control")
+names_list <- c("MCI", "AD", "CG")
+
 for(i in 1:(nrow(var_cov) - 1)){
   for(j in (i + 1):nrow(var_cov)){
     new_cov <- var_cov[c(i, j), c(i, j)]
@@ -149,8 +150,9 @@ for(i in 1:(nrow(var_cov) - 1)){
 
     # plotting based on res
     # points data
-    tex_xlab = TeX(paste0("$\\mu_{", names_vec[i], "}$"))
-    tex_ylab = TeX(paste0("$\\mu_{", names_vec[j], "}$"))
+    tex_xlab = TeX(paste0("$\\mu_{", names_list[i], "}$"))
+    tex_ylab = TeX(paste0("$\\mu_{", names_list[j], "}$"))
+
 
     data_used <- data.frame(x = points$x,
                             y = points$y,
@@ -184,7 +186,7 @@ for(i in 1:(nrow(var_cov) - 1)){
       theme_bw()+
       labs(x = tex_xlab,
            y = tex_ylab,
-           title = paste0(names_vec[i], " vs ", names_vec[j]),
+           title = paste0(names_list[i], " vs ", names_list[j]),
            colour = "Decision",
            fill = "Decision")
 
