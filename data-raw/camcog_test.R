@@ -82,6 +82,7 @@ ggplot(aes(x = x, y = y), data = points_data) +
 # Multiple comparisons ----------------------------------------------------
 c = 1
 plot_list = list()
+names_vec <- c("MCI", "AD", "Control")
 for(i in 1:(nrow(var_cov) - 1)){
   for(j in (i + 1):nrow(var_cov)){
     new_cov <- var_cov[c(i, j), c(i, j)]
@@ -148,9 +149,8 @@ for(i in 1:(nrow(var_cov) - 1)){
 
     # plotting based on res
     # points data
-    tex_title = TeX(paste0("$\\mu_", i,  "$ and $\\mu_", j, "$"))
-    tex_xlab = TeX(paste0("$\\mu_", i, "$"))
-    tex_ylab = TeX(paste0("$\\mu_", j, "$"))
+    tex_xlab = TeX(paste0("$\\mu_{", names_vec[i], "}$"))
+    tex_ylab = TeX(paste0("$\\mu_{", names_vec[j], "}$"))
 
     data_used <- data.frame(x = points$x,
                             y = points$y,
@@ -184,7 +184,7 @@ for(i in 1:(nrow(var_cov) - 1)){
       theme_bw()+
       labs(x = tex_xlab,
            y = tex_ylab,
-           title = tex_title,
+           title = paste0(names_vec[i], " vs ", names_vec[j]),
            colour = "Decision",
            fill = "Decision")
 
