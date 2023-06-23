@@ -7,15 +7,26 @@
 #' @param par vector of point estimates of each parameter
 #' @param delta delta to build pragmatics.
 #' @param f_matrix fisher information matrix associated to the vector of parameters
+#' @param invert Boolean indicating whether fisher matrix needs to be inverted or no.
+#' Default is FALSE
 #' @param nrow Number of rows for multiple plotting. If NA, we choose based on vector length
 #' (default is NA)
 #' @param ncol Number of columns for multiple plotting. If NA, we choose based on vector length
 #' (default is NA)
 #' @export
 
-m_comparisons <- function(alpha = 0.05, nrow = NA, ncol = NA, delta, par, f_matrix){
+m_comparisons <- function(alpha = 0.05,
+                          nrow = NA,
+                          ncol = NA,
+                          invert = FALSE,
+                          delta, par,
+                          f_matrix){
   # variance covariance matrix
+  if(invert){
   f_var_cov <- solve(f_matrix)
+  }else{
+    f_var_cov <- f_matrix
+  }
   # counting
   c <- 1
   q <- qchisq(1 - alpha, length(par))
