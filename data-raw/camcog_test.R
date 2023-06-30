@@ -236,6 +236,7 @@ plot_CI <- function(camcog_data, names_list = c("MCI", "AD", "CG"),
                           ymin = -delta, ymax = delta,
                  alpha=.2, fill='dodgerblue3')+
         theme_bw()+
+        geom_hline(yintercept = 0, linetype = "dashed") +
         ggplot2::scale_color_manual(values=c("Accept" = "darkgreen",
                                              "Agnostic" = "goldenrod",
                                              "Reject" = "darkred"),
