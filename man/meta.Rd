@@ -22,7 +22,7 @@ Table with 9 columns and 11 rows:
 meta
 }
 \description{
-Data from the meta analysis originally conducted by da Silva Teixeira et al (2022).
+Data collect from the meta analysis originally conducted by da Silva Teixeira et al (2022).
 The study evaluates patients' adherence to tobacco cessation protocols comparing
 traditional approaches combined to computer assisted health technologies to traditional
 approaches themselves. The treatments are compared by two main outcomes: the adherence
