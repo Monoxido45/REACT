@@ -4,16 +4,7 @@
 \alias{NNT_indep_test}
 \title{REACT for difference between success proportions of two independent populations}
 \usage{
-NNT_indep_test(
-  NNT,
-  event_e,
-  n_e,
-  event_c,
-  n_c,
-  alpha = 0.05,
-  plot = FALSE,
-  verbose = TRUE
-)
+NNT_indep_test(NNT, event_e, n_e, event_c, n_c, alpha = 0.05, verbose = TRUE)
 }
 \arguments{
 \item{NNT}{Number Necessary to Treat used to build pragmatic hypothesis}

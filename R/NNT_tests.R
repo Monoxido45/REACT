@@ -10,7 +10,7 @@
 #' @export
 
 NNT_indep_test <- function(NNT, event_e, n_e, event_c, n_c,
-                            alpha = 0.05, plot = FALSE, verbose = TRUE){
+                            alpha = 0.05, verbose = TRUE){
   epsilon <- 1/NNT
   prob_e <- event_e/n_e
   prob_c <- event_c/n_c
