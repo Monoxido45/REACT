@@ -24,9 +24,11 @@ The goal of REACT is to perform equivalence three-way hypothesis testing in a us
 
 1. **Establishing the region of equivalence.**
 2. **Build a Confidence Set.**
-3. **Test null hypothesis using confidence set following a three-way rule.**
+3. **Test null hypothesis using a confidence set following a three-way rule.**
 
 <!-- Continue writing more later -->
+
+We can have three kinds of conclusions: accept, reject or remain agnostic.
 
 ## Installation
 
@@ -39,7 +41,7 @@ devtools::install_github("Monoxido45/REACT")
 
 ## Base test example
 
-One can conduct any REACT simple hypothesis testing by providing a confidence interval, a chosen tolerance and the original simple hypothesis in the *base_test* function:
+Any REACT simple hypothesis testing can be conducted just by providing a confidence interval, a chosen tolerance and the original simple hypothesis in the *base_test* function:
 ```{r example}
 library(REACT)
 ## REACT t-test
@@ -56,7 +58,22 @@ tol <- 1.5
 # performing base test and getting the output
 test <- base_test(ci, tol = 1.5, hyp = 0, verbose = TRUE)
 ```
-We can have three kinds of conclusions.
+We can also plot the CI compared to the region of equivalence:
+```{r width = 6, height = 4}
+plot(test)
+```
+
+## Multiple comparisons example
+
+One can also perform multiple comparisons of several parameters while maintaining logical coherence by using *m_comparisons*:
+```{r}
+# vector of point estimations
+
+# fisher matrix
+
+
+```
+
 
 
 

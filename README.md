@@ -13,10 +13,13 @@ in a user-friendly manner. In its simplest form REACT consists in:
 
 1.  **Establishing the region of equivalence.**
 2.  **Build a Confidence Set.**
-3.  **Test null hypothesis using confidence set following a three-way
+3.  **Test null hypothesis using a confidence set following a three-way
     rule.**
 
 <!-- Continue writing more later -->
+
+We can have three kinds of conclusions: accept, reject or remain
+agnostic.
 
 ## Installation
 
@@ -30,7 +33,7 @@ devtools::install_github("Monoxido45/REACT")
 
 ## Base test example
 
-One can conduct any REACT simple hypothesis testing by providing a
+Any REACT simple hypothesis testing can be conducted just by providing a
 confidence interval, a chosen tolerance and the original simple
 hypothesis in the *base_test* function:
 
@@ -59,4 +62,21 @@ test <- base_test(ci, tol = 1.5, hyp = 0, verbose = TRUE)
 #> Based on the provided confidence interval we accept the null hypothesis.
 ```
 
-We can have three kinds of conclusions.
+We can also plot the CI compared to the region of equivalence:
+
+``` r
+plot(test)
+```
+
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+
+## Multiple comparisons example
+
+One can also perform multiple comparisons of several parameters while
+maintaining logical coherence by using *m_comparisons*:
+
+``` r
+# vector of point estimations
+
+# fisher matrix
+```
