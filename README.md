@@ -77,6 +77,16 @@ maintaining logical coherence by using *m_comparisons*:
 
 ``` r
 # vector of point estimations
+par <- c(1.1, 3.5, 1.5)
 
 # fisher matrix
+var_cov <- diag(c(0.05, 0.05, 0.1), nrow = 3, ncol = 3)
+
+# tolerance
+tol <- 1.5
+
+REACT::m_comparisons(alpha = 0.05, nrow = 1, ncol = 3,
+                     tol = tol, par = par, f_matrix = var_cov)
 ```
+
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />

@@ -9,7 +9,7 @@ m_comparisons(
   nrow = NA,
   ncol = NA,
   invert = FALSE,
-  delta,
+  tol,
   par,
   f_matrix
 )
@@ -26,7 +26,7 @@ m_comparisons(
 \item{invert}{Boolean indicating whether fisher matrix needs to be inverted or no.
 Default is FALSE}
 
-\item{delta}{delta to build pragmatics.}
+\item{tol}{tolerance to build pragmatics.}
 
 \item{par}{vector of point estimates of each parameter}
 
