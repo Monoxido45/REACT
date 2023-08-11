@@ -5,7 +5,7 @@
 #' @param point_estim Logical or vector of point estimations related to each study parameter. If TRUE,
 #' it uses the mean of the confidence intervals as the point estimate. Default is FALSE.
 #' @param study_names Vector of study names. Default is NULL.
-#' @param hyp precise hypothesis of interest - default is 0.
+#' @param hyp precise hypothesis of interest. Default is 0.
 #' @param NNT Number Necessary to Treat used to build pragmatic hypothesis.
 #' @param fail Boolean specifying whether the probabilities are for failure (TRUE) or success (FALSE).
 #' Default is FALSE.

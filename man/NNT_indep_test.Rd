@@ -7,20 +7,21 @@
 NNT_indep_test(NNT, event_e, n_e, event_c, n_c, alpha = 0.05, verbose = TRUE)
 }
 \arguments{
-\item{NNT}{Number Necessary to Treat used to build pragmatic hypothesis}
+\item{NNT}{Number Necessary to Treat used to build pragmatic hypothesis.}
 
-\item{event_e}{Number of successes in treatment group}
+\item{event_e}{Number of successes in treatment group.}
 
-\item{n_e}{Sample size of treatment group}
+\item{n_e}{Sample size of treatment group.}
 
-\item{event_c}{Number of successes in control (or other) group}
+\item{event_c}{Number of successes in control (or other) group.}
 
-\item{n_c}{Sample size of control (or other) group}
+\item{n_c}{Sample size of control (or other) group.}
 
-\item{alpha}{alpha level (default is 0.05)}
+\item{alpha}{alpha level. Default is 0.05.}
 
-\item{verbose}{set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)}
+\item{verbose}{set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE).
+Default is TRUE.}
 }
 \description{
-NNT based REACT for difference between success proportions of two independent populations
+NNT based REACT for difference between success proportions of two independent populations.
 }

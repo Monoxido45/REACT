@@ -1,10 +1,19 @@
-#' @title Uni parametric Agnostic Confidence-based precise test
-#' @description REACT function for uni parametric precise hypothesis testing
+#' @title Uni-parametric Agnostic and Pragmatic Confidence-based precise test
+#' @description REACT function for uni parametric precise hypothesis testing.
 #' @param CI parameter confidence interval for testing
-#' @param tol tolerance to build pragmatic hypothesis. It can be also an assymetric tolerance (vector of length 2)
+#' @param tol tolerance to build pragmatic hypothesis. It can be also an asymmetric tolerance (vector of length 2)
 #' @param hyp precise hypothesis of interest - default is 0
 #' @param verbose set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)
 #' @export
+#'
+#' @examples
+#' # chosen CI, tolerance and precise hypothesis
+#' ci <- c(-1, 1)
+#' tol <- 0.5
+#' hyp <- 0
+#' # printing
+#' test <- base_test(ci, tol, hyp)
+#'
 base_test <- function(CI, tol, hyp = 0, verbose = TRUE){
   # designing pragmatic interval
   if(length(tol) == 1){

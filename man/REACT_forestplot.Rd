@@ -19,7 +19,7 @@ with columns named CIlower and CIupper.}
 
 \item{NNT}{Number Necessary to Treat used to build pragmatic hypothesis.}
 
-\item{hyp}{precise hypothesis of interest - default is 0.}
+\item{hyp}{precise hypothesis of interest. Default is 0.}
 
 \item{point_estim}{Logical or vector of point estimations related to each study parameter. If TRUE,
 it uses the mean of the confidence intervals as the point estimate. Default is FALSE.}

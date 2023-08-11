@@ -1,7 +1,7 @@
 #' @title REACT for multiple parameters comparisons with logical consistency
 #' @description REACT plotting for multiple parameters comparisons. It uses asymptotic properties from
 #' MLE to plot pairwise confidence ellipsis and conclude if we reject, accept or remain agnostic about
-#' differences $|\theta_i - \theta_j|$ between each pair of parameter $\theta_i$ and $\theta_j$.
+#' each differences \eqn{|\theta_i - \theta_j|} between each pair of parameter \eqn{\theta_i} and \eqn{\theta_j}.
 #' Returns a plot list with all plottings of each comparisson.
 #' @param alpha alpha level (default is 0.05)
 #' @param par vector of point estimates of each parameter
@@ -14,6 +14,10 @@
 #' @param ncol Number of columns for multiple plotting. If NA, we choose based on vector length
 #' (default is NA)
 #' @export
+#'
+#' @examples
+#' # example code
+#'
 
 m_comparisons <- function(alpha = 0.05,
                           nrow = NA,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/RR_utils.R
 \name{REACT_RRplot}
 \alias{REACT_RRplot}
-\title{REACT Relative Risk Procedure.}
+\title{REACT Relative Risk forestplot.}
 \usage{
 REACT_RRplot(
   CI_matrix,
@@ -32,5 +32,5 @@ it uses the mean of the confidence intervals as the point estimate. Default is F
 \item{covar_names}{Vector of covariate names. Default is NULL.}
 }
 \description{
-REACT adapted procedure for agnostic and pragmatic analysis of the relative risk.
+REACT adapted forestplot for agnostic and pragmatic meta analysis of relative risk.
 }
