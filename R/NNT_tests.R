@@ -1,16 +1,17 @@
 #' @title REACT for difference between success proportions of two independent populations
-#' @description NNT based REACT for difference between success proportions of two independent populations
-#' @param alpha alpha level (default is 0.05)
-#' @param NNT Number Necessary to Treat used to build pragmatic hypothesis
-#' @param event_e Number of successes in treatment group
-#' @param n_e Sample size of treatment group
-#' @param event_c Number of successes in control (or other) group
-#' @param n_c Sample size of control (or other) group
-#' @param verbose set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)
+#' @description NNT based REACT for difference between success proportions of two independent populations.
+#' @param alpha alpha level. Default is 0.05.
+#' @param NNT Number Necessary to Treat used to build pragmatic hypothesis.
+#' @param event_e Number of successes in treatment group.
+#' @param n_e Sample size of treatment group.
+#' @param event_c Number of successes in control (or other) group.
+#' @param n_c Sample size of control (or other) group.
+#' @param verbose set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE).
+#' Default is TRUE.
 #' @export
 
 NNT_indep_test <- function(NNT, event_e, n_e, event_c, n_c,
-                            alpha = 0.05, plot = FALSE, verbose = TRUE){
+                            alpha = 0.05, verbose = TRUE){
   epsilon <- 1/NNT
   prob_e <- event_e/n_e
   prob_c <- event_c/n_c

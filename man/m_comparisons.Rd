@@ -9,7 +9,7 @@ m_comparisons(
   nrow = NA,
   ncol = NA,
   invert = FALSE,
-  delta,
+  tol,
   par,
   f_matrix
 )
@@ -26,7 +26,7 @@ m_comparisons(
 \item{invert}{Boolean indicating whether fisher matrix needs to be inverted or no.
 Default is FALSE}
 
-\item{delta}{delta to build pragmatics.}
+\item{tol}{tolerance to build pragmatics.}
 
 \item{par}{vector of point estimates of each parameter}
 
@@ -35,6 +35,10 @@ Default is FALSE}
 \description{
 REACT plotting for multiple parameters comparisons. It uses asymptotic properties from
 MLE to plot pairwise confidence ellipsis and conclude if we reject, accept or remain agnostic about
-differences $|\theta_i - \theta_j|$ between each pair of parameter $\theta_i$ and $\theta_j$.
+each differences \eqn{|\theta_i - \theta_j|} between each pair of parameter \eqn{\theta_i} and \eqn{\theta_j}.
 Returns a plot list with all plottings of each comparisson.
+}
+\examples{
+# example code
+
 }

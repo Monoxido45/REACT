@@ -2,19 +2,28 @@
 % Please edit documentation in R/base_test.R
 \name{base_test}
 \alias{base_test}
-\title{Uni parametric Agnostic Confidence-based precise test}
+\title{Uni-parametric Agnostic and Pragmatic Confidence-based precise test}
 \usage{
 base_test(CI, tol, hyp = 0, verbose = TRUE)
 }
 \arguments{
 \item{CI}{parameter confidence interval for testing}
 
-\item{tol}{tolerance to build pragmatic hypothesis. It can be also an assymetric tolerance (vector of length 2)}
+\item{tol}{tolerance to build pragmatic hypothesis. It can be also an asymmetric tolerance (vector of length 2)}
 
 \item{hyp}{precise hypothesis of interest - default is 0}
 
 \item{verbose}{set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)}
 }
 \description{
-REACT function for uni parametric precise hypothesis testing
+REACT function for uni parametric precise hypothesis testing.
+}
+\examples{
+# chosen CI, tolerance and precise hypothesis
+ci <- c(-1, 1)
+tol <- 0.5
+hyp <- 0
+# printing
+test <- base_test(ci, tol, hyp)
+
 }

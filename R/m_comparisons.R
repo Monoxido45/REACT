@@ -1,11 +1,11 @@
 #' @title REACT for multiple parameters comparisons with logical consistency
 #' @description REACT plotting for multiple parameters comparisons. It uses asymptotic properties from
 #' MLE to plot pairwise confidence ellipsis and conclude if we reject, accept or remain agnostic about
-#' differences $|\theta_i - \theta_j|$ between each pair of parameter $\theta_i$ and $\theta_j$.
+#' each differences \eqn{|\theta_i - \theta_j|} between each pair of parameter \eqn{\theta_i} and \eqn{\theta_j}.
 #' Returns a plot list with all plottings of each comparisson.
 #' @param alpha alpha level (default is 0.05)
 #' @param par vector of point estimates of each parameter
-#' @param delta delta to build pragmatics.
+#' @param tol tolerance to build pragmatics.
 #' @param f_matrix fisher information matrix associated to the vector of parameters
 #' @param invert Boolean indicating whether fisher matrix needs to be inverted or no.
 #' Default is FALSE
@@ -14,12 +14,16 @@
 #' @param ncol Number of columns for multiple plotting. If NA, we choose based on vector length
 #' (default is NA)
 #' @export
+#'
+#' @examples
+#' # example code
+#'
 
 m_comparisons <- function(alpha = 0.05,
                           nrow = NA,
                           ncol = NA,
                           invert = FALSE,
-                          delta, par,
+                          tol, par,
                           f_matrix){
   # variance covariance matrix
   if(invert){
@@ -58,27 +62,27 @@ m_comparisons <- function(alpha = 0.05,
 
       # using the points to determine whether the ellipse is intercepted by one of the lines
       # above line
-      check_ellipse <- function(c1, c2, a, b, theta, delta){
+      check_ellipse <- function(c1, c2, a, b, theta, tol){
         A <- ((cos(theta)^2/a^2) + (sin(theta)^2/b^2))
         B <- (2*cos(theta)*sin(theta)*((1/a^2) - (1/b^2)))
         C <- ((cos(theta)^2/b^2) + (sin(theta)^2/a^2))
 
         # checking if it has solutions for each pragmatic bound
         C_1 <- A + B + C
-        C_2 <- ((delta - c1 - c2)*B) - (2*A*c1) + (C*((2*delta) - (2 * c2)))
-        C_3 <- ((A * (c1^2)) + (((-c1*delta) + (c1*c2))*B) +
-                  (C * (delta - c2)^2) - 1)
+        C_2 <- ((tol - c1 - c2)*B) - (2*A*c1) + (C*((2*tol) - (2 * c2)))
+        C_3 <- ((A * (c1^2)) + (((-c1*tol) + (c1*c2))*B) +
+                  (C * (tol - c2)^2) - 1)
 
         return((C_2^2) - (4*C_1*C_3))
       }
-      abv_roots <- check_ellipse(new_par[1], new_par[2], a, b, angle, delta)
-      blw_roots <- check_ellipse(new_par[1], new_par[2], a, b, angle, -delta)
+      abv_roots <- check_ellipse(new_par[1], new_par[2], a, b, angle, tol)
+      blw_roots <- check_ellipse(new_par[1], new_par[2], a, b, angle, -tol)
 
       res <- ifelse(any(blw_roots > 0, abv_roots > 0), 1/2, 0)
 
       if(res == 0){
         # checking if center of ellipse is inside pragmatic region
-        inside <- ((new_par[1] - delta) <= new_par[2] & (new_par[1] + delta) >= new_par[2])
+        inside <- ((new_par[1] - tol) <= new_par[2] & (new_par[1] + tol) >= new_par[2])
 
         # if is not inside, and is tangent, then agnostic
         if(!inside & any(blw_roots == 0, abv_roots == 0)){
@@ -107,12 +111,12 @@ m_comparisons <- function(alpha = 0.05,
                               col = cols)
 
       # building data to construct pragmatic region
-      x_min <- min(data_used$x) - delta
-      x_max <- max(data_used$x) + delta
+      x_min <- min(data_used$x) - tol
+      x_max <- max(data_used$x) + tol
 
       # adding y to each x between x_min and x_max
-      y_1 <- seq(x_min - delta, x_max - delta, length.out = 300)
-      y_2 <- seq(x_min + delta, x_max + delta, length.out = 300)
+      y_1 <- seq(x_min - tol, x_max - tol, length.out = 300)
+      y_2 <- seq(x_min + tol, x_max + tol, length.out = 300)
       x <- seq(x_min, x_max, length.out = 300)
       prag_data <- data.frame(x = x,
                               y_1 = y_1,

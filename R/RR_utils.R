@@ -1,5 +1,5 @@
-#' @title REACT Relative Risk Procedure.
-#' @description REACT adapted procedure for agnostic and pragmatic analysis of the relative risk.
+#' @title REACT Relative Risk forestplot.
+#' @description REACT adapted forestplot for agnostic and pragmatic meta analysis of relative risk.
 #' @param CI_matrix Matrix of lower and upper bounds of confidence intervals related to each covariate
 #' with columns named CIlower and CIupper.
 #' @param point_estim Logical or vector of point estimations related to each covariate. If TRUE,
