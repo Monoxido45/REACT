@@ -260,16 +260,3 @@ plot_CI <- function(camcog_data, names_list = c("MCI", "AD", "CG"),
 }
 
 p <- plot_CI(camcog)
-
-
-
-
-
-
-
-
-
-
-
-
-
