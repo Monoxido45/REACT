@@ -6,20 +6,31 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of REACT is to perform equivalence three-way hypothesis testing
-in a user-friendly manner. In its simplest form REACT consists in:
+This package offers a user-friendly interface to REACT, a framework that
+combines equivalence testing (evaluating both practical significance and
+statistical significance) and three-way testing (allowing for a
+hypothesis to be accepted, rejected or for the user to remain
+undecided/agnostic). Generally speaking, REACT is performed in three
+steps:
 
 <!-- enrich this steps more later -->
 
-1.  **Establishing the region of equivalence.**
-2.  **Build a Confidence Set.**
-3.  **Test null hypothesis using a confidence set following a three-way
-    rule.**
+1.  **Use the information of what are negligible differences (for
+    example, results that are different only due to measurement errors)
+    to establish the null hypothesis of actual practical interest,
+    called the region of equivalence.**
+2.  **Build a multivariate confidence set of all parameters to be
+    tested. If a specific parameter will never be tested, it does not
+    have to be included in the confidence set.**
+3.  **Compare the null hypothesis with the confidence set, which is
+    simply checking if the confidence set is either: fully contained by
+    the null hypothesis (accept
+    ![H_0](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;H_0 "H_0")),
+    completely outside of it (reject
+    ![H_0](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;H_0 "H_0"))
+    or somewhere in between (remain agnostic).**
 
 <!-- Continue writing more later -->
-
-We can have three kinds of conclusions: accept, reject or remain
-agnostic.
 
 ## Installation
 
@@ -33,9 +44,11 @@ devtools::install_github("Monoxido45/REACT")
 
 ## Base test example
 
-Any REACT simple hypothesis testing can be conducted just by providing a
-confidence interval, a chosen tolerance and the original simple
-hypothesis in the *base_test* function:
+Any extended simple hypothesis can be tested through REACT by providing
+a confidence interval, a chosen tolerance and the original simple
+hypothesis in the *base_test* function. For example, if the extended
+hypothesis is of the form
+![H_0: \|\\mu_1 - \\mu_2\| \\le tol](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;H_0%3A%20%7C%5Cmu_1%20-%20%5Cmu_2%7C%20%5Cle%20tol "H_0: |\mu_1 - \mu_2| \le tol"),
 
 ``` r
 library(REACT)
@@ -66,14 +79,17 @@ We can also plot the CI compared to the region of equivalence:
 
 ``` r
 plot(test)
+#> Warning: Ignoring unknown parameters: linewidth
 ```
 
 <img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
-## Multiple comparisons example
+## Pairwise comparisons example
 
-One can also perform multiple comparisons of several parameters while
-maintaining logical coherence by using *m_comparisons*:
+One can also perform pairwise comparisons of multiple parameters while
+maintaining logical coherence by using *m_comparisons*. To do this, we
+assume that the estimators were obtained through MLE and use Fisher’s
+information as follows:
 
 ``` r
 # vector of point estimations
