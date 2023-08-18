@@ -9,6 +9,8 @@
 #' @param NNT Number Necessary to Treat used to build pragmatic hypothesis.
 #' @param fail Boolean specifying whether the probabilities are for failure (TRUE) or success (FALSE).
 #' Default is FALSE.
+#' @return React forestplot ggplot object
+#'
 #' @export
 REACT_forestplot <- function(CI_matrix,
                              NNT,

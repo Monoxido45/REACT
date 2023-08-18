@@ -8,6 +8,7 @@
 #' @param n_c Sample size of control (or other) group.
 #' @param verbose set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE).
 #' Default is TRUE.
+#' @return "simple REACT" object with the original confidence interval, pragmatic region derived by the chosen NNT and the test outcome
 #' @export
 
 NNT_indep_test <- function(NNT, event_e, n_e, event_c, n_c,

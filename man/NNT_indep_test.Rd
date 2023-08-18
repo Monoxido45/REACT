@@ -22,6 +22,9 @@ NNT_indep_test(NNT, event_e, n_e, event_c, n_c, alpha = 0.05, verbose = TRUE)
 \item{verbose}{set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE).
 Default is TRUE.}
 }
+\value{
+"simple REACT" object with the original confidence interval, pragmatic region derived by the chosen NNT and the test outcome
+}
 \description{
 NNT based REACT for difference between success proportions of two independent populations.
 }

@@ -9,6 +9,7 @@
 #' @param NNT Number Necessary to Treat used to build pragmatic hypothesis. Default is NULL.
 #' @param CER Control Error Rate used to build pragmatic hypothesis. Default is 1.
 #' @param RRR Relative Risk Reduction used to build pragmatic hypothesis. Default is NULL.
+#' @return REACT forestplot ggplot object.
 #' @export
 REACT_RRplot <- function(CI_matrix,
                          NNT = NULL,

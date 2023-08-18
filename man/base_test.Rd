@@ -7,13 +7,16 @@
 base_test(CI, tol, hyp = 0, verbose = TRUE)
 }
 \arguments{
-\item{CI}{parameter confidence interval for testing}
+\item{CI}{Parameter confidence interval for testing}
 
-\item{tol}{tolerance to build pragmatic hypothesis. It can be also an asymmetric tolerance (vector of length 2)}
+\item{tol}{Tolerance to build pragmatic hypothesis. It can be also an asymmetric tolerance (vector of length 2)}
 
-\item{hyp}{precise hypothesis of interest - default is 0}
+\item{hyp}{Precise hypothesis of interest - default is 0}
 
-\item{verbose}{set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)}
+\item{verbose}{Set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)}
+}
+\value{
+An object of class "simple_REACT" with the original confidence interval, pragmatic region and the test outcome. There is also a plot method available for this kind of object.
 }
 \description{
 REACT function for uni parametric precise hypothesis testing.

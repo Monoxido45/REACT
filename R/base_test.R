@@ -1,9 +1,11 @@
 #' @title Uni-parametric Agnostic and Pragmatic Confidence-based precise test
 #' @description REACT function for uni parametric precise hypothesis testing.
-#' @param CI parameter confidence interval for testing
-#' @param tol tolerance to build pragmatic hypothesis. It can be also an asymmetric tolerance (vector of length 2)
-#' @param hyp precise hypothesis of interest - default is 0
-#' @param verbose set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)
+#' @param CI Parameter confidence interval for testing
+#' @param tol Tolerance to build pragmatic hypothesis. It can be also an asymmetric tolerance (vector of length 2)
+#' @param hyp Precise hypothesis of interest - default is 0
+#' @param verbose Set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)
+#'
+#' @return An object of class "simple_REACT" with the original confidence interval, pragmatic region and the test outcome. There is also a plot method available for this kind of object.
 #' @export
 #'
 #' @examples

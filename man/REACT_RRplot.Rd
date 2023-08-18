@@ -31,6 +31,9 @@ it uses the mean of the confidence intervals as the point estimate. Default is F
 
 \item{covar_names}{Vector of covariate names. Default is NULL.}
 }
+\value{
+REACT forestplot ggplot object.
+}
 \description{
 REACT adapted forestplot for agnostic and pragmatic meta analysis of relative risk.
 }

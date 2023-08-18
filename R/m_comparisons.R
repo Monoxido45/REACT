@@ -13,10 +13,8 @@
 #' (default is NA)
 #' @param ncol Number of columns for multiple plotting. If NA, we choose based on vector length
 #' (default is NA)
+#' @return A list with each parameter comparisons ggplot-based plots
 #' @export
-#'
-#' @examples
-#' # example code
 #'
 
 m_comparisons <- function(alpha = 0.05,

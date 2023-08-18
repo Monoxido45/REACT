@@ -29,6 +29,9 @@ it uses the mean of the confidence intervals as the point estimate. Default is F
 \item{fail}{Boolean specifying whether the probabilities are for failure (TRUE) or success (FALSE).
 Default is FALSE.}
 }
+\value{
+React forestplot ggplot object
+}
 \description{
 REACT adapted forestplot for agnostic and pragmatic meta analysis data.
 }
