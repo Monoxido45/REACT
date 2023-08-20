@@ -3,6 +3,7 @@
 S3method(plot,simple_REACT)
 export("%>%")
 export(NNT_indep_test)
+export(REACT.glm)
 export(REACT_RRplot)
 export(REACT_forestplot)
 export(base_test)
