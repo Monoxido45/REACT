@@ -24,11 +24,8 @@ steps:
     have to be included in the confidence set.**
 3.  **Compare the null hypothesis with the confidence set, which is
     simply checking if the confidence set is either: fully contained by
-    the null hypothesis (accept
-    ![H_0](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;H_0 "H_0")),
-    completely outside of it (reject
-    ![H_0](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;H_0 "H_0"))
-    or somewhere in between (remain agnostic).**
+    the null hypothesis (accept $H_0$), completely outside of it (reject
+    $H_0$) or somewhere in between (remain agnostic).**
 
 <!-- Continue writing more later -->
 
@@ -47,8 +44,7 @@ devtools::install_github("Monoxido45/REACT")
 Any extended simple hypothesis can be tested through REACT by providing
 a confidence interval, a chosen tolerance and the original simple
 hypothesis in the *base_test* function. For example, if the extended
-hypothesis is of the form
-![H_0: \|\\mu_1 - \\mu_2\| \\le tol](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;H_0%3A%20%7C%5Cmu_1%20-%20%5Cmu_2%7C%20%5Cle%20tol "H_0: |\mu_1 - \mu_2| \le tol"),
+hypothesis is of the form $H_0: |\mu_1 - \mu_2| \le tol$,
 
 ``` r
 library(REACT)
@@ -79,7 +75,6 @@ We can also plot the CI compared to the region of equivalence:
 
 ``` r
 plot(test)
-#> Warning: Ignoring unknown parameters: linewidth
 ```
 
 <img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />

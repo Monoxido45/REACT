@@ -58,7 +58,7 @@ tol <- 1.5
 test <- base_test(ci, tol = 1.5, hyp = 0, verbose = TRUE)
 ```
 We can also plot the CI compared to the region of equivalence:
-```{r width = 6, height = 4}
+```{r warning = FALSE, width = 6, height = 4}
 plot(test)
 ```
 
