@@ -6,7 +6,7 @@
 \usage{
 REACT.glm(
   formula,
-  family = gaussian,
+  family = stats::gaussian,
   data,
   weights,
   subset,
@@ -29,15 +29,76 @@ REACT.glm(
 )
 }
 \arguments{
-\item{tol}{Tolerance to build pragmatic hypothesis. It can be also an asymmetric tolerance (vector of length 2)}
+\item{formula}{An object of class "formula" (or one that can be coerced to that class):
+a symbolic description of the model to be fitted.}
 
-\item{alpha}{Chosen significance level. Default is 0.05}
+\item{family}{a description of the error distribution and link function to be used in the model.
+For glm this can be a character string naming a family function, a family function or the result of a
+call to a family function.}
 
-\item{verbose}{Set whether text output should be generated (verbose = TRUE) or not (verbose = FALSE)}
+\item{data}{an optional data frame, list or environment (or object coercible by as.data.frame to a data frame)
+containing the variables in the model.If not found in data, the variables are taken from environment(formula),
+typically the environment from which glm is called.}
+
+\item{weights}{An optional vector of ‘prior weights’ to be used in the fitting process. Should be NULL or a numeric vector.}
+
+\item{subset}{An optional vector specifying a subset of observations to be used in the fitting process.}
+
+\item{tol}{Tolerance to build pragmatic hypothesis around each covariate parameter.
+It can be a vector of different tolerances (the same size as the number of covariates) or a global tolerance}
+
+\item{na.action}{A function which indicates what should happen when the data contain NAs.
+The default is set by the \link[stats]{na.fail}.}
+
+\item{alpha}{Chosen significance level to build confidence intervals for testing at level alpha. Default is 0.05.}
+
+\item{verbose}{Set whether REACT conclusions output should be printed (verbose = TRUE) or not (verbose = FALSE)}
+
+\item{start}{Starting values for the parameters in the linear predictor.}
+
+\item{etastart}{Starting values for the linear predictor.}
+
+\item{mustart}{Starting values for the vector of means.}
+
+\item{offset}{This can be used to specify an a priori known component to be included in the linear predictor during fitting.
+This should be NULL or a numeric vector of length equal to the number of cases.}
+
+\item{control}{A list of parameters for controlling the fitting process. For glm.fit this is passed to \link[stats]{glm.control}.}
+
+\item{model}{A logical value indicating whether model frame should be included as a component of the returned value.}
+
+\item{method}{The method to be used in fitting the model. The default method "glm.fit" uses iteratively reweighted least squares
+(IWLS): the alternative "model.frame" returns the model frame and does no fitting.
+
+User-supplied fitting functions can be supplied either as a function or a character string naming a function, with a function
+which takes the same arguments as glm.fit. If specified as a character string it is looked up from within the stats namespace.}
+
+\item{x, y}{For glm: logical values indicating whether the response vector and model matrix used in the fitting process should be returned as components of the returned value.
+
+For glm.fit: x is a design matrix of dimension n * p, and y is a vector of observations of length n.}
+
+\item{singular.ok}{Logical; if FALSE a singular fit is an error.}
+
+\item{...}{For glm: arguments to be used to form the default control argument if it is not supplied directly.
+
+For weights: further arguments passed to or from other methods.}
+
+\item{constrats}{An optional list. See the contrasts.arg of model.matrix.default.}
+
+\item{intercept}{Logical. Should an intercept be included in the null model?}
+
+\item{object}{An object inheriting from class "glm".}
+
+\item{type}{Character, partial matching allowed. Type of weights to extract from the fitted model object. Can be abbreviated.}
 }
 \value{
-An object of class "simple_REACT" with the original confidence interval, pragmatic region and the test outcome. There is also a plot method available for this kind of object.
+A personalized object of class "REACT.glm" and "REACT.lm" with the original glm output
+plus a list of significant, non-significant and agnostic covariates, chosen tolerances and significance levels
+and parameter confidence intervals.
 }
 \description{
-REACT-based feature selection of GLM covariates.
+REACT-based general linear model with agnostic and pragmatic feature selection of covariates.
+It reproduces the same steps as a classical glm with normalized covariates and conducts significance testing
+of covariates using the REACT procedure, providing three conclusions about each variable: significant,
+non-significant and agnostic.
 }

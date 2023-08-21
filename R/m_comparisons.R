@@ -31,7 +31,7 @@ m_comparisons <- function(alpha = 0.05,
   }
   # counting
   c <- 1
-  q <- qchisq(1 - alpha, length(par))
+  q <- stats::qchisq(1 - alpha, length(par))
   plot_list <- list()
 
   for(i in 1:(nrow(var_cov) - 1)){
