@@ -138,7 +138,9 @@ REACT.glm <- function(formula, family = gaussian, data, weights, subset, tol,
     cat("\n")
     cat("Some Confidence intervals (matrix form):")
     cat("\n")
-    print(ifelse(nrow(CI_s) <= 10, CI_s, CI_s[1:10, ]))
+    print(if(nrow(CI_s) <= 10){
+      CI_s}else{
+        CI_s[1:10, ]})
   }
 
   # adding results to glm object
