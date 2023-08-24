@@ -13,8 +13,6 @@ hypothesis to be accepted, rejected or for the user to remain
 undecided/agnostic). Generally speaking, REACT is performed in three
 steps:
 
-<!-- enrich this steps more later -->
-
 1.  **Use the information of what are negligible differences (for
     example, results that are different only due to measurement errors)
     to establish the null hypothesis of actual practical interest,
@@ -28,6 +26,12 @@ steps:
     $H_0$) or somewhere in between (remain agnostic).**
 
 <!-- Continue writing more later -->
+
+REACT ideas, properties and applications are more detailed in the paper:
+
+[Izbicki R.,Cabezas L. M. C., Colugnatti F. A. B., Lassance R. F. L., de
+Souza A. A. L., Stern R. B. (2023). Rethinking Hypothesis Tests. arXiv
+preprint arXiv:2308.09112](https://arxiv.org/abs/2308.09112).
 
 ## Installation
 

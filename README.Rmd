@@ -20,13 +20,15 @@ knitr::opts_chunk$set(
 
 This package offers a user-friendly interface to REACT, a framework that combines equivalence testing (evaluating both practical significance and statistical significance) and three-way testing (allowing for a hypothesis to be accepted, rejected or for the user to remain undecided/agnostic). Generally speaking, REACT is performed in three steps:
 
-<!-- enrich this steps more later -->
-
 1. **Use the information of what are negligible differences (for example, results that are different only due to measurement errors) to establish the null hypothesis of actual practical interest, called the region of equivalence.**
 2. **Build a multivariate confidence set of all parameters to be tested. If a specific parameter will never be tested, it does not have to be included in the confidence set.**
 3. **Compare the null hypothesis with the confidence set, which is simply checking if the confidence set is either: fully contained by the null hypothesis (accept $H_0$), completely outside of it (reject $H_0$) or somewhere in between (remain agnostic).**
 
 <!-- Continue writing more later -->
+REACT ideas, properties and applications are more detailed in the paper:
+
+[Izbicki R.,Cabezas L. M. C., Colugnatti F. A. B., Lassance R. F. L., de Souza A. A. L., Stern R. B. (2023). Rethinking Hypothesis Tests. arXiv preprint arXiv:2308.09112](https://arxiv.org/abs/2308.09112).
+
 
 
 ## Installation
