@@ -48,6 +48,15 @@
 #' and parameter confidence intervals.
 #' @export
 #'
+#' @examples
+#' # DL95 example
+#' counts <- c(18,17,15,20,10,20,25,13,12)
+#' outcome <- gl(3,1,9)
+#' treatment <- gl(3,3)
+#' react_glm_D93 <- REACT.glm(counts ~ outcome + treatment, family = poisson(),
+#' tol = 0.5, alpha = 0.05, verbose = TRUE)
+#' react_glm_D93
+#'
 # TODO: change description and documentation
 REACT.glm <- function(formula, family = stats::gaussian, data, weights, subset, tol,
                       na.action, alpha = 0.05, verbose = FALSE, start = NULL, etastart,

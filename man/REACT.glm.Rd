@@ -102,3 +102,13 @@ It reproduces the same steps as a classical glm with normalized covariates and c
 of covariates using the REACT procedure, providing three conclusions about each variable: significant,
 non-significant and agnostic.
 }
+\examples{
+# DL95 example
+counts <- c(18,17,15,20,10,20,25,13,12)
+outcome <- gl(3,1,9)
+treatment <- gl(3,3)
+react_glm_D93 <- REACT.glm(counts ~ outcome + treatment, family = poisson(),
+tol = 0.5, alpha = 0.05, verbose = TRUE)
+react_glm_D93
+
+}
