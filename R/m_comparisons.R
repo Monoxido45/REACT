@@ -146,7 +146,7 @@ m_comparisons <- function(alpha = 0.05,
   }
 
   p <- ggpubr::ggarrange(plotlist = plot_list, nrow = nrow, ncol = ncol, common.legend = TRUE)
-  show(p)
+  methods::show(p)
 
   invisible(plot_list)
 }

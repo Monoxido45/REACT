@@ -50,8 +50,8 @@ CI_s <- meta_fil$study_class %>% unique() %>%
             eventc,
             nc,
             studlab,
-            data= used_data,
-            sm= "RD",
+            data = used_data,
+            sm = "RD",
             model.glmm = ("CM.AL"),
             method = "Inverse")
 
