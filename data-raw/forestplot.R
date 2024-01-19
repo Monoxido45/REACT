@@ -122,7 +122,7 @@ meta_fil <- meta_fil %>%
 NNT <- c(-0, 6)
 CI_mat <- as.matrix(meta_fil[c("CIlower", "CIupper")])
 g <- REACT::REACT_forestplot(CI_mat, NNT = NNT, study_names = meta_fil$studlab,
-                             point_estim = meta_fil$mean)
+                             point_estim = meta_fil$mean, prop_precision = TRUE)
 g$data$studlab <- relevel(g$data$studlab, "Pooled")
 g$data <- bind_cols(g$data,
                     study_class = factor(meta_fil$study_class,
@@ -137,7 +137,7 @@ highlight = function(x, pat, color="black", family="") {
   ifelse(grepl(pat, x), glue::glue("<b style='font-family:{family}; color:{color}'>{x}</b>"), x)
 }
 
-g + facet_grid(. ~ study_class, scales="free") +
+g + facet_grid(. ~ study_class, scales = "free") +
   theme(axis.text.y = element_text(face = bold.labels))+
   scale_y_discrete(labels= function(x) highlight(x, "Pooled", "black"))+
   theme(axis.text.y= ggtext::element_markdown())

@@ -9,6 +9,7 @@ REACT_forestplot(
   NNT,
   hyp = 0,
   point_estim = FALSE,
+  prop_precision = FALSE,
   study_names = NULL,
   fail = FALSE
 )
@@ -23,6 +24,8 @@ with columns named CIlower and CIupper.}
 
 \item{point_estim}{Logical or vector of point estimations related to each study parameter. If TRUE,
 it uses the mean of the confidence intervals as the point estimate. Default is FALSE.}
+
+\item{prop_precision}{Set whether the point estimates should be proportional to the study precision. Default is FALSE.}
 
 \item{study_names}{Vector of study names. Default is NULL.}
 

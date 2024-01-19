@@ -175,21 +175,26 @@ plot_CI <- function(camcog_data, names_list = c("MCI", "AD", "CG"),
         filter(Diagnostico %in% c(name_1, name_2)) |>
         nrow()
 
+      new_camcog_data <- camcog_data |>
+        filter(Diagnostico %in% c(name_1, name_2)) |>
+        sample_frac() |>
+        mutate(idx = 1:n)
+
       # removing the two first entries from first group
-      group_1_obs <- camcog_data |> filter(Diagnostico  == name_1) |>
-        slice(1:2) |> pull(CAMCOG)
+      group_1_obs_info <- new_camcog_data |> filter(Diagnostico == name_1) |>
+        slice(1:2)
 
       # removing the two last entries from second group
-      group_2_obs <- camcog_data |> filter(Diagnostico  == name_2) |>
-        slice_tail(n = 2) |> pull(CAMCOG)
+      group_2_obs_info <- new_camcog_data |> filter(Diagnostico  == name_2) |>
+        slice(1:2)
 
       # making new data
-      new_data <- camcog_data |>
+      new_data <- new_camcog_data |>
         filter(Diagnostico %in% c(name_1, name_2)) |>
-        slice(-c(1,2, n - 1, n))
+        slice(-c(group_1_obs_info$idx, group_2_obs_info$idx))
 
-      # shuffling rows
-      new_data <- new_data |> sample_frac()
+      group_1_obs <- group_1_obs_info$CAMCOG
+      group_2_obs <- group_2_obs_info$CAMCOG
 
       # total number of sampling to do
       tot_n <- n - 4
@@ -259,7 +264,8 @@ plot_CI <- function(camcog_data, names_list = c("MCI", "AD", "CG"),
   ggpubr::ggarrange(plotlist = plot_list, nrow = 1, ncol = 3, common.legend = TRUE)
 }
 
-p <- plot_CI(camcog)
+plot_CI(camcog, seed = 785)
+
 
 plot_multiple_CI <- function(camcog_data, nsim = 5, names_list = c("MCI", "AD", "CG"),
                              seed = 125, alpha = 0.05, delta = 15){
@@ -277,12 +283,14 @@ plot_multiple_CI <- function(camcog_data, nsim = 5, names_list = c("MCI", "AD", 
       # changing shuffling
 
       for(seed in seeds_list){
+        set.seed(seed)
         camcog_data <- camcog_data |>
           na.omit() |>
           mutate(Diagnostico = factor(Diagnostico)) |>
           mutate(Diagnostico = recode_factor(Diagnostico,
                                              CCL = "MCI", DA = "AD", GC = "CG")) |>
-          arrange(match(Diagnostico, names_list))
+          arrange(match(Diagnostico, names_list)) |>
+          sample_frac()
 
         name_1 <- names_list[i]
         name_2 <- names_list[j]
@@ -303,8 +311,7 @@ plot_multiple_CI <- function(camcog_data, nsim = 5, names_list = c("MCI", "AD", 
           filter(Diagnostico %in% c(name_1, name_2)) |>
           slice(-c(1,2, n - 1, n))
 
-      # shuffling rows
-      set.seed(seed)
+      # shuffling rows again
       new_data <- new_data |> sample_frac()
 
       # total number of sampling to do
@@ -396,34 +403,39 @@ plot_multiple_CI_separated <- function(camcog_data, nsim = 5, names_list = c("MC
   for(i in 1:(length(names_list) - 1)){
     for(j in (i + 1):length(names_list)){
       # changing shuffling
-        camcog_data <- camcog_data |>
-          na.omit() |>
-          mutate(Diagnostico = factor(Diagnostico)) |>
-          mutate(Diagnostico = recode_factor(Diagnostico,
-                                             CCL = "MCI", DA = "AD", GC = "CG")) |>
-          arrange(match(Diagnostico, names_list))
+      name_1 <- names_list[i]
+      name_2 <- names_list[j]
+      camcog_data <- camcog_data |>
+        na.omit() |>
+        mutate(Diagnostico = factor(Diagnostico)) |>
+        mutate(Diagnostico = recode_factor(Diagnostico,
+                                           CCL = "MCI", DA = "AD", GC = "CG")) |>
+        arrange(match(Diagnostico, names_list))
 
-        name_1 <- names_list[i]
-        name_2 <- names_list[j]
-        n <- camcog_data |>
-          filter(Diagnostico %in% c(name_1, name_2)) |>
-          nrow()
+      n <- camcog_data |>
+        filter(Diagnostico %in% c(name_1, name_2)) |>
+        nrow()
 
-        # removing the two first entries from first group
-        group_1_obs <- camcog_data |> filter(Diagnostico  == name_1) |>
-          slice(1:2) |> pull(CAMCOG)
+      new_camcog_data <- camcog_data |>
+        filter(Diagnostico %in% c(name_1, name_2)) |>
+        sample_frac() |>
+        mutate(idx = 1:n)
 
-        # removing the two last entries from second group
-        group_2_obs <- camcog_data |> filter(Diagnostico  == name_2) |>
-          slice_tail(n = 2) |> pull(CAMCOG)
+      # removing the two first entries from first group
+      group_1_obs_info <- new_camcog_data |> filter(Diagnostico == name_1) |>
+        slice(1:2)
+
+      # removing the two last entries from second group
+      group_2_obs_info <- new_camcog_data |> filter(Diagnostico  == name_2) |>
+        slice(1:2)
 
         # making new data
-        new_data <- camcog_data |>
+        new_data <- new_camcog_data |>
           filter(Diagnostico %in% c(name_1, name_2)) |>
-          slice(-c(1,2, n - 1, n))
+          slice(-c(group_1_obs_info$idx, group_2_obs_info$idx))
 
-        # shuffling rows
-        new_data <- new_data |> sample_frac()
+        group_1_obs <- group_1_obs_info$CAMCOG
+        group_2_obs <- group_2_obs_info$CAMCOG
 
         # total number of sampling to do
         tot_n <- n - 4
@@ -501,7 +513,7 @@ plot_multiple_CI_separated <- function(camcog_data, nsim = 5, names_list = c("MC
   ggpubr::ggarrange(plotlist = plot_list, nrow = nsim, ncol = 3, common.legend = TRUE)
 }
 
-plot_multiple_CI_separated(camcog, nsim = 3, seed = 250)
+plot_multiple_CI_separated(camcog, nsim = 3, seed = 750)
 
 # Bayesian CAMCOG
 

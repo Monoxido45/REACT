@@ -4,6 +4,7 @@
 #' with columns named CIlower and CIupper.
 #' @param point_estim Logical or vector of point estimations related to each study parameter. If TRUE,
 #' it uses the mean of the confidence intervals as the point estimate. Default is FALSE.
+#' @param prop_precision Set whether the point estimates should be proportional to the study precision. Default is FALSE.
 #' @param study_names Vector of study names. Default is NULL.
 #' @param hyp precise hypothesis of interest. Default is 0.
 #' @param NNT Number Necessary to Treat used to build pragmatic hypothesis.
@@ -16,6 +17,7 @@ REACT_forestplot <- function(CI_matrix,
                              NNT,
                              hyp = 0,
                              point_estim = FALSE,
+                             prop_precision = FALSE,
                              study_names = NULL,
                              fail = FALSE){
   if(fail){
@@ -54,6 +56,7 @@ REACT_forestplot <- function(CI_matrix,
   }
   meta_data <- data.frame(CIlower = CI_matrix[,1],
                           CIupper = CI_matrix[,2],
+                          prec_size = (1/(CI_matrix[,2] - CI_matrix[,1])) * (1/10),
                           points = point_estim,
                           color = cols,
                           studlab = factor(study_names, levels = rev(sort(unique(study_names)))))
@@ -62,20 +65,23 @@ REACT_forestplot <- function(CI_matrix,
   #arr_inf <- min(c(CI_matrix[,1], p_int[1])) - 0.05
   #arr_sup <- max(c(CI_matrix[, 2], p_int[2])) + 0.05
   CI_sd <- sqrt(max(var(CI_mat)))
-  arr_inf <- min(c(CI_matrix[,1])) - CI_sd
-  arr_sup <- max(c(CI_matrix[, 2])) + CI_sd
+  arr_inf <- min(c(CI_matrix[,1])) - 0.05
+  arr_sup <- max(c(CI_matrix[, 2])) + 0.05
 
   # adding annotations
   p <- meta_data %>%
     ggplot2::ggplot(ggplot2::aes(y = studlab, xmin = CIlower, xmax = CIupper, col = color)) +
     ggplot2::geom_errorbarh(ggplot2::aes(height=.2)) +
-    {if(!all(is.na(meta_data$points))) ggplot2::geom_point(ggplot2::aes(x = points))} +
+    {if(!all(is.na(meta_data$points)) & !(prop_precision)){ggplot2::geom_point(ggplot2::aes(x = points))}
+      else{if(!all(is.na(meta_data$points)) & (prop_precision)) ggplot2::geom_point(ggplot2::aes(x = points,
+                                                                                                 size = prec_size))}} +
     ggplot2::annotate('rect', xmin = p_int[1], xmax = p_int[2],
                       ymin = 0, ymax = nrow(CI_matrix), alpha=.2, fill='dodgerblue3') +
     ggplot2::geom_vline(xintercept = hyp, linetype = 'dashed') +
     ggplot2::scale_color_manual(values=c("Accept" = "darkgreen",
                                          "Agnostic" = "goldenrod",
                                          "Reject" = "darkred")) +
+    ggplot2::scale_size_continuous(range = c(0.5, 4))+
     ggplot2::theme_bw() +
     ggplot2::theme(axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 35)))+
     ggplot2::coord_cartesian(ylim=c(0 + 0.5, nrow(CI_matrix) - 0.5), clip = "off") +
@@ -92,6 +98,7 @@ REACT_forestplot <- function(CI_matrix,
     ggplot2::annotate("segment", x = hyp + CI_sd/4, xend = arr_sup,
                       y = -1, yend = -1, colour = "slateblue4", size = 1, alpha=0.6,
                       arrow=arrow(length = ggplot2::unit(0.1, "inches")))+
+    ggplot2::guides(size = "none")+
     ggplot2::labs(title = "NNT-based REACT Forestplot",
                   x = "Mean Difference", y = "Study", color = "Decision")
 
