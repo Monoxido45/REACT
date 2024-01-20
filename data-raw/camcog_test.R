@@ -14,6 +14,7 @@ stats <- camcog |>
   group_by(Diagnostico) |>
   summarise(mu = mean(CAMCOG, na.rm = TRUE),
             sigma = var(CAMCOG, na.rm = TRUE)/n(),
+            sum_squared = sum(CAMCOG^2, na.rm = TRUE),
             n = n())
 
 # computing pooled variance
@@ -650,4 +651,37 @@ m_comparisons_bayes <- function(df_s, sd, xbars, B, tol,
 # generating bayes camcog image
 delta <- 15
 m_comparisons_bayes(n, sd, xbars, B = 500, tol = delta)
+
+# using NGI prior
+# prior parameters
+prior_par <- c(0, 1, 10, 10)
+# generating new df_s, sd and xbars based on this prior
+generate_post_par <- function(theta, lambda, alpha, beta, stats){
+  # generating new df
+  new_dfs <- (2*alpha + stats$n + 1)
+
+  # new mean
+  new_xbars <- ((stats$n*stats$mu) + (lambda*theta))/(lambda + stats$n)
+  delta <- (beta + (stats$sum_squared/2) + (lambda*(theta^2))/2 - (((stats$n*stats$mu) +
+                                                                   (lambda*theta))^2/(2*(lambda + stats$n))))
+  print(delta)
+  new_sds <- sqrt(2*delta/(
+    (lambda + stats$n)*(2*alpha + (stats$n + 1))
+    ))
+
+  return(list(dfs = new_dfs, sd = new_sds, xbars = new_xbars))
+}
+
+# posterior parameters for t distribution
+post_par <- generate_post_par(prior_par[1], prior_par[2], prior_par[3], prior_par[4], stats)
+delta <- 15
+m_comparisons_bayes(post_par$dfs, post_par$sd, post_par$xbars, B = 10^5, tol = delta)
+
+
+
+
+
+
+
+
 
