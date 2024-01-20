@@ -515,6 +515,139 @@ plot_multiple_CI_separated <- function(camcog_data, nsim = 5, names_list = c("MC
 
 plot_multiple_CI_separated(camcog, nsim = 3, seed = 750)
 
-# Bayesian CAMCOG
 
+# Bayesian CAMCOG ---------------------------------------------------------
+# using jeffreys prior, we obtain that for each mu_k:
+# mu_k|\bar{X}_k ~ t_{n_k - 1}(\bar{X}_k, S^2/n_k), that is mu_K - \bar{X}/(S/sqrt{n_k}) ~ t_{n_k - 1}
+# using stats values
+n <- stats$n
+sd <- stats$sigma |> sqrt()
+xbars <- stats$mu
+names_list <- c("MCI", "AD", "CG")
+B <- 10^5
+
+# generating several t's
+generate_HPD_data <- function(df_s, sd, xbars, B, names_list = c("MCI", "AD", "CG"), alpha = 0.05, seed = 250){
+  # generating t samples and computing densities
+  set.seed(seed)
+  sim_data <- names_list |>
+    purrr::map_dfc(B = B, function(x, B){
+      idx <- which(names_list == x)
+      n_used <- n[idx]
+      # generating t's
+      sample <- rt(B, df = n_used)
+      # computing dt's
+      densities <- dt(sample, n_used)
+      # joining in dataframe
+      colname_1 <- x
+      colname_2 <- paste0(x, "_dens")
+      data <- data.frame(var1 = sample,
+                 var2 = densities)
+      colnames(data) <- c(colname_1, colname_2)
+      return(data)
+    }) |>
+    rowwise() |>
+    mutate(dens_total = prod(c_across(ends_with("dens")))) |> # generating the total densities for each sample
+    ungroup() |>
+    filter(dens_total >= quantile(dens_total, alpha)) |> # selecting the 1-alpha highest densities
+    select(names_list)
+
+  data_final <- names_list |>
+    purrr::map_dfc(function(x){
+      idx <- which(names_list == x)
+      temp_data <- sim_data |> select(idx)
+      (temp_data*sd[idx]) + xbars[idx]
+    })
+  return(data_final)
+}
+
+sim_data <- generate_HPD_data(n, sd, xbars, B)
+
+m_comparisons_bayes <- function(df_s, sd, xbars, B, tol,
+                                names_list = c("MCI", "AD", "CG"),
+                                alpha = 0.05, seed = 250, nrow = 1, ncol = 3){
+  # generating HPD data
+  hpd_data <- generate_HPD_data(df_s, sd, xbars, B, names_list, alpha, seed)
+  c <- 1
+  plot_list <- list()
+
+  for(i in 1:(length(names_list) - 1)){
+    for(j in (i + 1):length(names_list)){
+    current_data <- hpd_data |> select(c(i, j))
+
+    # points in convex hull
+    ch_points <- current_data |>
+      slice(chull(current_data |> pull(1),
+          current_data |> pull(2)))
+
+    # check convex hull
+    check_convex_hull <- function(point_x, point_y, tol){
+      abs(point_x - point_y) <= tol
+    }
+    ch_checking <- check_convex_hull(ch_points[, 1], ch_points[, 2], tol = tol)
+
+    # obtaining convex hull point indexes
+    res <- ifelse(all(ch_checking == TRUE), 0,
+                  ifelse(all(ch_checking == FALSE), 1, 1/2))
+
+    # transforming res into factor
+    cols <- factor(res,
+                   levels = c(0, 1/2, 1),
+                   labels = c("Accept", "Agnostic", "Reject"))
+
+
+    # plotting based on res
+    # points data
+    tex_title = latex2exp::TeX(paste0("$\\mu_{", names_list[i],  "}$ and $\\mu_{", names_list[j], "}$"))
+    tex_xlab = latex2exp::TeX(paste0("$\\mu_{", names_list[i], "}$"))
+    tex_ylab = latex2exp::TeX(paste0("$\\mu_{", names_list[j], "}$"))
+
+    data_used <- data.frame(x = ch_points[, 1],
+                            y = ch_points[, 2],
+                            col = cols)
+
+    # building data to construct pragmatic region
+    x_min <- min(data_used$x) - tol
+    x_max <- max(data_used$x) + tol
+
+    # adding y to each x between x_min and x_max
+    y_1 <- seq(x_min - tol, x_max - tol, length.out = 300)
+    y_2 <- seq(x_min + tol, x_max + tol, length.out = 300)
+    x <- seq(x_min, x_max, length.out = 300)
+    prag_data <- data.frame(x = x,
+                            y_1 = y_1,
+                            y_2 = y_2)
+
+    plot_list[[c]] <- ggplot2::ggplot(
+      ggplot2::aes(x = x, y = y, fill = col, colour = col), data = data_used) +
+      ggplot2::geom_polygon(alpha = 0.4)+
+      ggplot2::scale_color_manual(values=c("Accept" = "darkgreen",
+                                           "Agnostic" = "goldenrod",
+                                           "Reject" = "darkred"),
+                                  drop = FALSE) +
+      ggplot2::scale_fill_manual(values=c("Accept" = "darkgreen",
+                                          "Agnostic" = "goldenrod",
+                                          "Reject" = "darkred"),
+                                 drop = FALSE)+
+      ggplot2::geom_ribbon(ggplot2::aes(x = x, ymin = y_1, ymax = y_2),
+                           data = prag_data, inherit.aes = FALSE,
+                           fill = "dodgerblue3", alpha = 0.2)+
+      ggplot2::theme_bw()+
+      ggplot2::labs(x = tex_xlab,
+                    y = tex_ylab,
+                    title = tex_title,
+                    colour = "Decision",
+                    fill = "Decision")
+    c <- c + 1
+    }
+  }
+  p <- ggpubr::ggarrange(plotlist = plot_list, nrow = nrow, ncol = ncol, common.legend = TRUE)
+  methods::show(p)
+
+  invisible(plot_list)
+}
+
+# generating bayes camcog image
+delta <- 15
+m_comparisons_bayes(n, sd, xbars, B = 500, tol = delta)
 
