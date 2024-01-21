@@ -11,6 +11,7 @@ my_labs <- (camcog |> count(Diagnostico))$Diagnostico
 # different counts for each group of diagnostic
 # computing means for each group
 stats <- camcog |>
+  na.omit() |>
   group_by(Diagnostico) |>
   summarise(mu = mean(CAMCOG, na.rm = TRUE),
             sigma = var(CAMCOG, na.rm = TRUE)/n(),
@@ -90,7 +91,7 @@ ggplot(aes(x = x, y = y), data = points_data) +
 names_list <- c("MCI", "AD", "CG")
 # supposing heterocedastic behavior:
 p <- REACT::m_comparisons(alpha = 0.05, nrow = 1, ncol = 3,
-                     delta = delta, par = mu, f_matrix = var_cov)
+                     tol = delta, par = mu, f_matrix = var_cov)
 
 # modifying labs
 c <- 1
@@ -521,7 +522,7 @@ plot_multiple_CI_separated(camcog, nsim = 3, seed = 750)
 # using jeffreys prior, we obtain that for each mu_k:
 # mu_k|\bar{X}_k ~ t_{n_k - 1}(\bar{X}_k, S^2/n_k), that is mu_K - \bar{X}/(S/sqrt{n_k}) ~ t_{n_k - 1}
 # using stats values
-n <- stats$n
+n <- stats$n - 1
 sd <- stats$sigma |> sqrt()
 xbars <- stats$mu
 names_list <- c("MCI", "AD", "CG")
@@ -654,16 +655,15 @@ m_comparisons_bayes(n, sd, xbars, B = 500, tol = delta)
 
 # using NGI prior
 # prior parameters
-prior_par <- c(0, 1, 10, 10)
 # generating new df_s, sd and xbars based on this prior
 generate_post_par <- function(theta, lambda, alpha, beta, stats){
   # generating new df
-  new_dfs <- (2*alpha + stats$n + 1)
+  new_dfs <- (2*alpha + stats$n)
 
   # new mean
   new_xbars <- ((stats$n*stats$mu) + (lambda*theta))/(lambda + stats$n)
-  delta <- (beta + (stats$sum_squared/2) + (lambda*(theta^2))/2 - (((stats$n*stats$mu) +
-                                                                   (lambda*theta))^2/(2*(lambda + stats$n))))
+  delta <- (beta + (stats$sum_squared/2) + (lambda*(theta^2))/2 - (
+    (stats$n*stats$mu + (lambda*theta))^2/(2*(lambda + stats$n))))
   print(delta)
   new_sds <- sqrt(2*delta/(
     (lambda + stats$n)*(2*alpha + (stats$n + 1))
@@ -673,15 +673,24 @@ generate_post_par <- function(theta, lambda, alpha, beta, stats){
 }
 
 # posterior parameters for t distribution
+prior_par <- c(0, 0.5, 30, 30)
+post_par <- generate_post_par(prior_par[1], prior_par[2], prior_par[3], prior_par[4], stats)
+delta <- 15
+m_comparisons_bayes(post_par$dfs, post_par$sd, post_par$xbars, B = 10^5, tol = delta)
+# result similar to frequentist
+
+# using flat prior
+prior_par <- c(0, 1, 1, 1)
+post_par <- generate_post_par(prior_par[1], prior_par[2], prior_par[3], prior_par[4], stats)
+delta <- 15
+m_comparisons_bayes(post_par$dfs, post_par$sd, post_par$xbars, B = 10^5, tol = delta)
+# more inconclusive result
+
+# choosing other priors
+# increasing more both variance and GI parameters to obtain more assertive results
+prior_par <- c(0, 0.1, 50, 50)
 post_par <- generate_post_par(prior_par[1], prior_par[2], prior_par[3], prior_par[4], stats)
 delta <- 15
 m_comparisons_bayes(post_par$dfs, post_par$sd, post_par$xbars, B = 10^5, tol = delta)
 
-
-
-
-
-
-
-
-
+# we can obtain all the tree kinds of results using the NGI prior
