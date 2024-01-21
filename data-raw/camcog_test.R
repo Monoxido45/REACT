@@ -529,7 +529,8 @@ names_list <- c("MCI", "AD", "CG")
 B <- 10^5
 
 # generating several t's
-generate_HPD_data <- function(df_s, sd, xbars, B, names_list = c("MCI", "AD", "CG"), alpha = 0.05, seed = 250){
+generate_HPD_data <- function(df_s, sd, xbars, B,
+                              names_list = c("MCI", "AD", "CG"), alpha = 0.05, seed = 250){
   # generating t samples and computing densities
   set.seed(seed)
   sim_data <- names_list |>
@@ -565,11 +566,14 @@ generate_HPD_data <- function(df_s, sd, xbars, B, names_list = c("MCI", "AD", "C
 
 sim_data <- generate_HPD_data(n, sd, xbars, B)
 
+# multiple comparisons using jeffreys prior
 m_comparisons_bayes <- function(df_s, sd, xbars, B, tol,
                                 names_list = c("MCI", "AD", "CG"),
                                 alpha = 0.05, seed = 250, nrow = 1, ncol = 3){
-  # generating HPD data
+  # generating HPD data for posterior
   hpd_data <- generate_HPD_data(df_s, sd, xbars, B, names_list, alpha, seed)
+
+  # generating HPD data for prior
   c <- 1
   plot_list <- list()
 
@@ -649,12 +653,12 @@ m_comparisons_bayes <- function(df_s, sd, xbars, B, tol,
   invisible(plot_list)
 }
 
-# generating bayes camcog image
+# generating objective bayes camcog image
 delta <- 15
 m_comparisons_bayes(n, sd, xbars, B = 500, tol = delta)
 
 # using NGI prior
-# prior parameters
+# obtaining posterior parameters
 # generating new df_s, sd and xbars based on this prior
 generate_post_par <- function(theta, lambda, alpha, beta, stats){
   # generating new df
@@ -667,30 +671,198 @@ generate_post_par <- function(theta, lambda, alpha, beta, stats){
   print(delta)
   new_sds <- sqrt(2*delta/(
     (lambda + stats$n)*(2*alpha + (stats$n + 1))
-    ))
+  ))
 
   return(list(dfs = new_dfs, sd = new_sds, xbars = new_xbars))
 }
 
+# HPD for prior
+generate_prior_HPD_data <- function(theta, lambda, alpha_par, beta,
+                                    names_list = c("MCI", "AD", "CG"), alpha = 0.05, seed = 250){
+  # generating t samples and computing densities
+  set.seed(seed)
+  sim_data <- names_list |>
+    purrr::map_dfc(B = B, function(x, B){
+      # generating t's
+      sample <- rt(B, df = 2*alpha_par)
+      # computing dt's
+      densities <- dt(sample, 2*alpha_par)
+      # joining in dataframe
+      colname_1 <- x
+      colname_2 <- paste0(x, "_dens")
+      data <- data.frame(var1 = sample,
+                         var2 = densities)
+      colnames(data) <- c(colname_1, colname_2)
+      return(data)
+    }) |>
+    rowwise() |>
+    mutate(dens_total = prod(c_across(ends_with("dens")))) |> # generating the total densities for each sample
+    ungroup() |>
+    filter(dens_total >= quantile(dens_total, alpha)) |> # selecting the 1-alpha highest densities
+    select(names_list)
+
+  sd <- sqrt((2*beta)/lambda)
+  xbar <- theta
+  data_final <- names_list |>
+    purrr::map_dfc(function(x){
+      idx <- which(names_list == x)
+      temp_data <- sim_data |> select(idx)
+      (temp_data*sd) + xbar
+    })
+
+  return(data_final)
+}
+
+# multiple comparisons using NGI prior
+m_comparisons_bayes_NGI <- function(theta, lambda, alpha_par, beta, stats, B, tol,
+                                names_list = c("MCI", "AD", "CG"),
+                                alpha = 0.05, seed = 250, nrow = 1, ncol = 3){
+  # posterior parameters
+  post_par <- generate_post_par(theta, lambda, alpha_par, beta, stats)
+  df_s <- post_par$dfs
+  sd <- post_par$sd
+  xbars <- post_par$xbars
+
+  # generating HPD data for posterior
+  hpd_data <- generate_HPD_data(df_s, sd, xbars, B, names_list, alpha, seed)
+
+  # generating HPD data for prior
+  df_p <- 2*alpha_par
+  hpd_prior_data <- generate_prior_HPD_data(theta, lambda, alpha_par, beta,
+                                            names_list, alpha, seed)
+  c <- 1
+  plot_list <- list()
+
+  for(i in 1:(length(names_list) - 1)){
+    for(j in (i + 1):length(names_list)){
+      current_data <- hpd_data |> select(c(i, j))
+      current_prior_data <- hpd_prior_data |> select(c(i, j))
+      plot(current_prior_data |> pull(1), current_prior_data |> pull(2))
+
+      # points in convex hull
+      ch_points <- current_data |>
+        slice(chull(current_data |> pull(1),
+                    current_data |> pull(2)))
+
+      ch_points_prior <- current_prior_data |>
+        slice(chull(current_prior_data |> pull(1),
+                    current_prior_data |> pull(2)))
+
+
+      # check convex hull
+      check_convex_hull <- function(point_x, point_y, tol){
+        abs(point_x - point_y) <= tol
+      }
+      ch_checking <- check_convex_hull(current_data[, 1], current_data[, 2], tol = tol)
+      ch_checking_prior <- check_convex_hull(current_prior_data[, 1], current_prior_data[, 2], tol = tol)
+
+      # obtaining convex hull point indexes
+      res <- ifelse(all(ch_checking == TRUE), 0,
+                    ifelse(all(ch_checking == FALSE), 1, 1/2))
+
+      res_prior <- ifelse(all(ch_checking_prior == TRUE), 0,
+                          ifelse(all(ch_checking_prior == FALSE), 1, 1/2))
+
+      # transforming res into factor
+      cols <- factor(res,
+                     levels = c(0, 1/2, 1),
+                     labels = c("Accept", "Agnostic", "Reject"))
+
+      cols_prior <- factor(res_prior,
+                           levels = c(0, 1/2, 1),
+                           labels = c("Accept", "Agnostic", "Reject"))
+
+
+      # plotting based on res
+      # points data
+      tex_title = latex2exp::TeX(paste0("$\\mu_{", names_list[i],  "}$ and $\\mu_{", names_list[j], "}$"))
+      tex_xlab = latex2exp::TeX(paste0("$\\mu_{", names_list[i], "}$"))
+      tex_ylab = latex2exp::TeX(paste0("$\\mu_{", names_list[j], "}$"))
+
+      data_used <- data.frame(x = ch_points[, 1],
+                              y = ch_points[, 2],
+                              col = cols,
+                              type = "posterior")
+
+      data_used_prior <- data.frame(x = ch_points_prior[, 1],
+                                    y = ch_points_prior[, 2],
+                                    col = cols_prior,
+                                    type = "prior")
+      # joining data to plot
+      all_data_used <- bind_rows(data_used, data_used_prior)
+
+      # building data to construct pragmatic region
+      x_min <- min(all_data_used$x) - tol
+      x_max <- max(all_data_used$x) + tol
+
+      # adding y to each x between x_min and x_max
+      y_1 <- seq(x_min - tol, x_max - tol, length.out = 300)
+      y_2 <- seq(x_min + tol, x_max + tol, length.out = 300)
+      x <- seq(x_min, x_max, length.out = 300)
+      prag_data <- data.frame(x = x,
+                              y_1 = y_1,
+                              y_2 = y_2)
+
+      plot_list[[c]] <- ggplot2::ggplot(
+        ggplot2::aes(x = x, y = y, fill = col, colour = col, linetype = type), data = all_data_used) +
+        ggplot2::geom_polygon(alpha = 0.4)+
+        ggplot2::scale_color_manual(values=c("Accept" = "darkgreen",
+                                             "Agnostic" = "goldenrod",
+                                             "Reject" = "darkred"),
+                                    drop = FALSE) +
+        ggplot2::scale_fill_manual(values=c("Accept" = "darkgreen",
+                                            "Agnostic" = "goldenrod",
+                                            "Reject" = "darkred"),
+                                   drop = FALSE)+
+        ggplot2::scale_linetype_manual(values=c("prior" = 2,
+                                                "posterior" = 1),
+                                       guide = guide_legend(override.aes = list(colour = "black",
+                                                                                fill = NA)))+
+        ggplot2::geom_ribbon(ggplot2::aes(x = x, ymin = y_1, ymax = y_2),
+                             data = prag_data, inherit.aes = FALSE,
+                             fill = "dodgerblue3", alpha = 0.2)+
+        ggplot2::theme_bw()+
+        ggplot2::labs(x = tex_xlab,
+                      y = tex_ylab,
+                      title = tex_title,
+                      colour = "Decision",
+                      linetype = "Distribution",
+                      fill = "Decision")
+      c <- c + 1
+    }
+  }
+  p <- ggpubr::ggarrange(plotlist = plot_list, nrow = nrow, ncol = ncol, common.legend = TRUE)
+  methods::show(p)
+
+  invisible(plot_list)
+}
+
 # posterior parameters for t distribution
-prior_par <- c(0, 0.5, 30, 30)
-post_par <- generate_post_par(prior_par[1], prior_par[2], prior_par[3], prior_par[4], stats)
+prior_par <- c(80, 1, 2, 2)
 delta <- 15
-m_comparisons_bayes(post_par$dfs, post_par$sd, post_par$xbars, B = 10^5, tol = delta)
-# result similar to frequentist
+B <- 10^5
+m_comparisons_bayes_NGI(prior_par[1], prior_par[2], prior_par[3], prior_par[4],
+                    stats, B = B, tol = delta)
+# result similar to frequentist and prior is more concentrated
 
-# using flat prior
-prior_par <- c(0, 1, 1, 1)
-post_par <- generate_post_par(prior_par[1], prior_par[2], prior_par[3], prior_par[4], stats)
-delta <- 15
-m_comparisons_bayes(post_par$dfs, post_par$sd, post_par$xbars, B = 10^5, tol = delta)
-# more inconclusive result
+# increasing lambda to obtain an even more concentrated prior
+prior_par <- c(80, 2.5, 2, 2)
+m_comparisons_bayes_NGI(prior_par[1], prior_par[2], prior_par[3], prior_par[4],
+                        stats, B = B, tol = delta)
 
-# choosing other priors
-# increasing more both variance and GI parameters to obtain more assertive results
+# increasing alpha and beta and decreasing lambda to obtain more assertive posteriors but wide priors
 prior_par <- c(0, 0.1, 50, 50)
-post_par <- generate_post_par(prior_par[1], prior_par[2], prior_par[3], prior_par[4], stats)
-delta <- 15
-m_comparisons_bayes(post_par$dfs, post_par$sd, post_par$xbars, B = 10^5, tol = delta)
+m_comparisons_bayes_NGI(prior_par[1], prior_par[2], prior_par[3], prior_par[4],
+                        stats, B = B, tol = delta)
 
-# we can obtain all the tree kinds of results using the NGI prior
+# using flat prior but with balance in prior concentration, increasing variance with lambda less than zero
+prior_par <- c(80, 0.5, 1, 1)
+B <- 10^5
+m_comparisons_bayes_NGI(prior_par[1], prior_par[2], prior_par[3], prior_par[4],
+                        stats, B = B, tol = delta)
+
+# trying to obtain a smoother region
+prior_par <- c(80, 0.25, 3, 3)
+B <- 10^5
+m_comparisons_bayes_NGI(prior_par[1], prior_par[2], prior_par[3], prior_par[4],
+                        stats, B = B, tol = delta)
