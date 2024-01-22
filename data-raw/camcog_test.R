@@ -536,11 +536,11 @@ generate_HPD_data <- function(df_s, sd, xbars, B,
   sim_data <- names_list |>
     purrr::map_dfc(B = B, function(x, B){
       idx <- which(names_list == x)
-      n_used <- n[idx]
+      n_used <- df_s[idx]
       # generating t's
-      sample <- rt(B, df = n_used)
+      sample <- rt(B, df = df_s)
       # computing dt's
-      densities <- dt(sample, n_used)
+      densities <- dt(sample, df = df_s)
       # joining in dataframe
       colname_1 <- x
       colname_2 <- paste0(x, "_dens")
@@ -701,7 +701,7 @@ generate_prior_HPD_data <- function(theta, lambda, alpha_par, beta,
     filter(dens_total >= quantile(dens_total, alpha)) |> # selecting the 1-alpha highest densities
     select(names_list)
 
-  sd <- sqrt((2*beta)/lambda)
+  sd <- sqrt(beta/(lambda*alpha))
   xbar <- theta
   data_final <- names_list |>
     purrr::map_dfc(function(x){
@@ -784,8 +784,15 @@ m_comparisons_bayes_NGI <- function(theta, lambda, alpha_par, beta, stats, B, to
                               col = cols,
                               type = "posterior")
 
-      data_used_prior <- data.frame(x = ch_points_prior[, 1],
-                                    y = ch_points_prior[, 2],
+      # generating points from an ellipse for the prior
+      # radius from major and minor axis
+      prior_points <- DescTools::DrawEllipse(x = theta,
+                             radius.x = (max(ch_points_prior[, 1]) - min(ch_points_prior[, 1]))/2,
+                             radius.y = (max(ch_points_prior[, 2]) - min(ch_points_prior[, 2]))/2,
+                             rot = 0, plot = FALSE, nv = 2000)
+
+      data_used_prior <- data.frame(x = prior_points$x,
+                                    y = prior_points$y,
                                     col = cols_prior,
                                     type = "prior")
       # joining data to plot
@@ -862,7 +869,43 @@ m_comparisons_bayes_NGI(prior_par[1], prior_par[2], prior_par[3], prior_par[4],
                         stats, B = B, tol = delta)
 
 # trying to obtain a smoother region
-prior_par <- c(80, 0.25, 3, 3)
+prior_par <- c(80, 1, 3, 3)
 B <- 10^5
 m_comparisons_bayes_NGI(prior_par[1], prior_par[2], prior_par[3], prior_par[4],
-                        stats, B = B, tol = delta)
+                        stats, B = B, tol = delta, seed = 125)
+
+
+# showing difference between hpds for t distributions with different df's
+library(cxhull)
+set.seed(125)
+df <- 1
+a <- rt(10^5, df)
+b <- rt(10^5, df)
+c <- rt(10^5, df)
+q <- quantile(dt(a, df, log = TRUE) + dt(b, df, log = TRUE) + dt(c, df, log = TRUE), 0.05)
+idxs <- which(dt(a, df, log = TRUE) + dt(b, df, log = TRUE) + dt(c, df, log = TRUE) >= q)
+new_a <- a[idxs]
+new_b <- b[idxs]
+sd <- sqrt(1/1)
+new_a_2 <- new_a*sd + 80
+new_b_2 <- new_b*sd + 80
+plot(a, b)
+ch <- chull(new_a_2, new_b_2)
+plot(new_a_2, new_b_2)
+plot(c(new_a_2[ch], 80), c(new_b_2[ch], 80))
+lines(prior_points$x, prior_points$y)
+
+
+prior_points <- DescTools::DrawEllipse(x = 80, y =80,
+                                       radius.x = (max(new_a_2[ch]) - min(new_a_2[ch]))/2,
+                                       radius.y = (max(new_b_2[ch]) - min(new_b_2[ch]))/2,
+                                       rot = 0, plot = FALSE, nv = 2000)
+plot(prior_points$x, prior_points$y)
+
+
+new_df <- data.frame(a = prior_points$x, b = prior_points$y)
+ggplot(new_df, aes(x = a, y = b))+
+  geom_polygon(alpha = 0.4)
+
+car::dataEllipse(new_a_2[ch], new_b_2[ch])
+
