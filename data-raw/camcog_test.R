@@ -2,6 +2,8 @@ library(dplyr)
 library(ggplot2)
 library(ggforce)
 library(latex2exp)
+library(extraDistr)
+library(concaveman)
 
 # importing data (CG - Control, DA - Alzheimer, CCL - MCI?)
 camcog <- read.csv("data-raw/CAMCOG.csv")
@@ -538,9 +540,9 @@ generate_HPD_data <- function(df_s, sd, xbars, B,
       idx <- which(names_list == x)
       n_used <- df_s[idx]
       # generating t's
-      sample <- rt(B, df = df_s)
+      sample <- rlst(n = B, df = n_used, mu = xbars[idx], sigma = sd[idx])
       # computing dt's
-      densities <- dt(sample, df = df_s)
+      densities <- dlst(sample, df = n_used, mu = xbars[idx], sigma = sd[idx])
       # joining in dataframe
       colname_1 <- x
       colname_2 <- paste0(x, "_dens")
@@ -555,13 +557,7 @@ generate_HPD_data <- function(df_s, sd, xbars, B,
     filter(dens_total >= quantile(dens_total, alpha)) |> # selecting the 1-alpha highest densities
     select(names_list)
 
-  data_final <- names_list |>
-    purrr::map_dfc(function(x){
-      idx <- which(names_list == x)
-      temp_data <- sim_data |> select(idx)
-      (temp_data*sd[idx]) + xbars[idx]
-    })
-  return(data_final)
+  return(sim_data)
 }
 
 sim_data <- generate_HPD_data(n, sd, xbars, B)
@@ -679,14 +675,17 @@ generate_post_par <- function(theta, lambda, alpha, beta, stats){
 # HPD for prior
 generate_prior_HPD_data <- function(theta, lambda, alpha_par, beta,
                                     names_list = c("MCI", "AD", "CG"), alpha = 0.05, seed = 250){
-  # generating t samples and computing densities
+  # generating location-scale t samples and computing densities
   set.seed(seed)
+  sd <- sqrt(beta/(lambda*alpha))
+  xbar <- theta
+
   sim_data <- names_list |>
     purrr::map_dfc(B = B, function(x, B){
       # generating t's
-      sample <- rt(B, df = 2*alpha_par)
+      sample <- rlst(B, df = 2*alpha_par, mu = theta, sigma = sd)
       # computing dt's
-      densities <- dt(sample, 2*alpha_par)
+      densities <- dlst(sample, df = 2*alpha_par, mu = theta, sigma = sd)
       # joining in dataframe
       colname_1 <- x
       colname_2 <- paste0(x, "_dens")
@@ -701,16 +700,7 @@ generate_prior_HPD_data <- function(theta, lambda, alpha_par, beta,
     filter(dens_total >= quantile(dens_total, alpha)) |> # selecting the 1-alpha highest densities
     select(names_list)
 
-  sd <- sqrt(beta/(lambda*alpha))
-  xbar <- theta
-  data_final <- names_list |>
-    purrr::map_dfc(function(x){
-      idx <- which(names_list == x)
-      temp_data <- sim_data |> select(idx)
-      (temp_data*sd) + xbar
-    })
-
-  return(data_final)
+  return(sim_data)
 }
 
 # multiple comparisons using NGI prior
@@ -737,16 +727,17 @@ m_comparisons_bayes_NGI <- function(theta, lambda, alpha_par, beta, stats, B, to
     for(j in (i + 1):length(names_list)){
       current_data <- hpd_data |> select(c(i, j))
       current_prior_data <- hpd_prior_data |> select(c(i, j))
-      plot(current_prior_data |> pull(1), current_prior_data |> pull(2))
 
       # points in convex hull
+      ch_idx <- chull(current_data |> pull(1),
+                      current_data |> pull(2))
       ch_points <- current_data |>
-        slice(chull(current_data |> pull(1),
-                    current_data |> pull(2)))
+        slice(ch_idx)
 
+      ch_idx_prior <- chull(current_prior_data |> pull(1),
+                                               current_prior_data |> pull(2))
       ch_points_prior <- current_prior_data |>
-        slice(chull(current_prior_data |> pull(1),
-                    current_prior_data |> pull(2)))
+        slice(ch_idx_prior)
 
 
       # check convex hull
@@ -779,28 +770,23 @@ m_comparisons_bayes_NGI <- function(theta, lambda, alpha_par, beta, stats, B, to
       tex_xlab = latex2exp::TeX(paste0("$\\mu_{", names_list[i], "}$"))
       tex_ylab = latex2exp::TeX(paste0("$\\mu_{", names_list[j], "}$"))
 
-      data_used <- data.frame(x = ch_points[, 1],
-                              y = ch_points[, 2],
+
+      data_used <- data.frame(x = ch_points |> pull(1),
+                              y = ch_points |> pull(2),
                               col = cols,
                               type = "posterior")
 
-      # generating points from an ellipse for the prior
-      # radius from major and minor axis
-      prior_points <- DescTools::DrawEllipse(x = theta,
-                             radius.x = (max(ch_points_prior[, 1]) - min(ch_points_prior[, 1]))/2,
-                             radius.y = (max(ch_points_prior[, 2]) - min(ch_points_prior[, 2]))/2,
-                             rot = 0, plot = FALSE, nv = 2000)
-
-      data_used_prior <- data.frame(x = prior_points$x,
-                                    y = prior_points$y,
+      # generating points for the prior using concave hull
+      data_used_prior <- data.frame(x = ch_points_prior|> pull(1),
+                                    y = ch_points_prior|> pull(2),
                                     col = cols_prior,
                                     type = "prior")
       # joining data to plot
       all_data_used <- bind_rows(data_used, data_used_prior)
 
       # building data to construct pragmatic region
-      x_min <- min(all_data_used$x) - tol
-      x_max <- max(all_data_used$x) + tol
+      x_min <- min(all_data_used$x, na.rm = T) - tol
+      x_max <- max(all_data_used$x, na.rm = T) + tol
 
       # adding y to each x between x_min and x_max
       y_1 <- seq(x_min - tol, x_max - tol, length.out = 300)
@@ -844,7 +830,7 @@ m_comparisons_bayes_NGI <- function(theta, lambda, alpha_par, beta, stats, B, to
   invisible(plot_list)
 }
 
-# posterior parameters for t distribution
+# testing posterior parameters for t distribution
 prior_par <- c(80, 1, 2, 2)
 delta <- 15
 B <- 10^5
@@ -868,28 +854,34 @@ B <- 10^5
 m_comparisons_bayes_NGI(prior_par[1], prior_par[2], prior_par[3], prior_par[4],
                         stats, B = B, tol = delta)
 
-# trying to obtain a smoother region
+# trying to obtain a smoother region but maintaing good alpha shapes
 prior_par <- c(80, 1, 3, 3)
+tol <- 15
 B <- 10^5
 m_comparisons_bayes_NGI(prior_par[1], prior_par[2], prior_par[3], prior_par[4],
-                        stats, B = B, tol = delta, seed = 125)
+                        stats, B = B, tol = tol, seed = 125)
 
 
 # showing difference between hpds for t distributions with different df's
-library(cxhull)
+library(concaveman)
 set.seed(125)
-df <- 1
-a <- rt(10^5, df)
-b <- rt(10^5, df)
-c <- rt(10^5, df)
-q <- quantile(dt(a, df, log = TRUE) + dt(b, df, log = TRUE) + dt(c, df, log = TRUE), 0.05)
-idxs <- which(dt(a, df, log = TRUE) + dt(b, df, log = TRUE) + dt(c, df, log = TRUE) >= q)
+df <- 2
+lambda <- 0.5
+sd <- sqrt(1/lambda)
+a <- rlst(n = 10^5, df = df, mu = 80, sigma = sd)
+b <- rlst(n = 10^5, df = df, mu = 80, sigma = sd)
+c <- rlst(n = 10^5, df = df, mu = 80, sigma = sd)
+
+q <- quantile(
+  dlst(a, df, mu = 80, sigma = sd)*dlst(b, df, mu = 80, sigma = sd)*dlst(c, df, mu = 80, sigma = sd),
+  0.05)
+
+idxs <- which(dlst(a, df, mu = 80, sigma = sd)*dlst(b, df, mu = 80, sigma = sd)*dlst(c, df, mu = 80, sigma = sd) >= q)
 new_a <- a[idxs]
 new_b <- b[idxs]
-sd <- sqrt(1/1)
-new_a_2 <- new_a*sd + 80
-new_b_2 <- new_b*sd + 80
-plot(a, b)
+concave_points <- concaveman(cbind(new_a, new_b))
+plot(concave_points)
+plot(new_a, new_b)
 ch <- chull(new_a_2, new_b_2)
 plot(new_a_2, new_b_2)
 plot(c(new_a_2[ch], 80), c(new_b_2[ch], 80))
@@ -903,7 +895,7 @@ prior_points <- DescTools::DrawEllipse(x = 80, y =80,
 plot(prior_points$x, prior_points$y)
 
 
-new_df <- data.frame(a = prior_points$x, b = prior_points$y)
+new_df <- data.frame(a = concave_points[, 1], b = concave_points[, 2])
 ggplot(new_df, aes(x = a, y = b))+
   geom_polygon(alpha = 0.4)
 
