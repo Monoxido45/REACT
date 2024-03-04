@@ -81,7 +81,7 @@ REACT_forestplot <- function(CI_matrix,
     ggplot2::scale_color_manual(values=c("Accept" = "darkgreen",
                                          "Agnostic" = "goldenrod",
                                          "Reject" = "darkred")) +
-    ggplot2::scale_size_continuous(range = c(0.5, 5))+
+    ggplot2::scale_size_continuous(range = c(0.5, 6))+
     ggplot2::theme_bw() +
     ggplot2::theme(axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 35)))+
     ggplot2::coord_cartesian(ylim=c(0 + 0.5, nrow(CI_matrix) - 0.5), clip = "off") +
