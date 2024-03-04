@@ -239,17 +239,14 @@ highlight <- function(x, pat, color = "black", family = "") {
   ifelse(grepl(pat, x), glue::glue("<b style='font-family:{family}; color:{color}'>{x}</b>"), x)
 }
 
-g + labs(x = "Risk difference") + facet_grid(. ~ study_class, scales = "free") +
+g + labs(x = "Risk differences") + facet_grid(. ~ study_class, scales = "free") +
   theme(axis.text.y = element_text(face = bold.labels)) +
   scale_y_discrete(labels = function(x) highlight(x, "Pooled", "black")) +
   theme(axis.text.y = ggtext::element_markdown())
 
 ggsave("nnt_forestplot3.png",
-  widht = 1000, height = 500,
-  units = "px", device = "png"
+  width = 12, height = 6
 )
-
-
 # Bayesian tests ----------------------------------------------------------
 
 # NNT forest plot (Bayesian, prior: Beta(0, 0))
