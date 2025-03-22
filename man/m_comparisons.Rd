@@ -8,6 +8,8 @@ m_comparisons(
   alpha = 0.05,
   nrow = NA,
   ncol = NA,
+  x_lims = NA,
+  y_lims = NA,
   invert = FALSE,
   tol,
   par,
@@ -22,6 +24,10 @@ m_comparisons(
 
 \item{ncol}{Number of columns for multiple plotting. If NA, we choose based on vector length
 (default is NA)}
+
+\item{x_lims}{x-axis limits for each plot. If NA, we choose based on data (default is NA)}
+
+\item{y_lims}{y-axis limits for each plot. If NA, we choose based on data (default is NA)}
 
 \item{invert}{Boolean indicating whether fisher matrix needs to be inverted or no.
 Default is FALSE}
