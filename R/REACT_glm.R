@@ -46,102 +46,131 @@
 #' @return A personalized object of class "REACT.glm" and "REACT.lm" with the original glm output
 #' plus a list of significant, non-significant and agnostic covariates, chosen tolerances and significance levels
 #' and parameter confidence intervals.
-#' @export
 #'
 #' @examples
 #' # DL95 example
-#' counts <- c(18,17,15,20,10,20,25,13,12)
-#' outcome <- gl(3,1,9)
-#' treatment <- gl(3,3)
-#' react_glm_D93 <- REACT.glm(counts ~ outcome + treatment, family = poisson(),
-#' tol = 0.5, alpha = 0.05, verbose = TRUE)
+#' counts <- c(18, 17, 15, 20, 10, 20, 25, 13, 12)
+#' outcome <- gl(3, 1, 9)
+#' treatment <- gl(3, 3)
+#' react_glm_D93 <- REACT.glm(counts ~ outcome + treatment,
+#'   family = poisson(),
+#'   tol = 0.5, alpha = 0.05, verbose = TRUE
+#' )
 #' react_glm_D93
 #'
+#' @export
 # TODO: change description and documentation
 REACT.glm <- function(formula, family = stats::gaussian, data, weights, subset, tol,
                       na.action, alpha = 0.05, verbose = FALSE, start = NULL, etastart,
-                      mustart, offset, control = list(...),model = TRUE, method = "glm.fit",
-                      x = FALSE, y = TRUE, singular.ok = TRUE, contrasts = NULL, ...)
-{
+                      mustart, offset, control = list(...), model = TRUE, method = "glm.fit",
+                      x = FALSE, y = TRUE, singular.ok = TRUE, contrasts = NULL, ...) {
   # original GLM code with some adaptations
   cal <- match.call()
-  if (is.character(family))
+  if (is.character(family)) {
     family <- get(family, mode = "function", envir = parent.frame())
-  if (is.function(family))
+  }
+  if (is.function(family)) {
     family <- family()
+  }
   if (is.null(family$family)) {
     print(family)
     stop("'family' not recognized")
   }
-  if (missing(data))
+  if (missing(data)) {
     data <- environment(formula)
+  }
   mf <- match.call(expand.dots = FALSE)
-  m <- match(c("formula", "data", "subset", "weights", "na.action",
-               "etastart", "mustart", "offset"), names(mf), 0L)
+  m <- match(c(
+    "formula", "data", "subset", "weights", "na.action",
+    "etastart", "mustart", "offset"
+  ), names(mf), 0L)
   mf <- mf[c(1L, m)]
   mf$drop.unused.levels <- TRUE
   mf[[1L]] <- quote(stats::model.frame)
   mf <- eval(mf, parent.frame())
-  if (identical(method, "model.frame"))
+  if (identical(method, "model.frame")) {
     return(mf)
-  if (!is.character(method) && !is.function(method))
+  }
+  if (!is.character(method) && !is.function(method)) {
     stop("invalid 'method' argument")
-  if (identical(method, "glm.fit"))
+  }
+  if (identical(method, "glm.fit")) {
     control <- do.call("glm.control", control)
+  }
   mt <- attr(mf, "terms")
   Y <- stats::model.response(mf, "any")
   if (length(dim(Y)) == 1L) {
     nm <- rownames(Y)
     dim(Y) <- NULL
-    if (!is.null(nm))
+    if (!is.null(nm)) {
       names(Y) <- nm
+    }
   }
-  X <- if (!stats::is.empty.model(mt))
+  X <- if (!stats::is.empty.model(mt)) {
     stats::model.matrix(mt, mf, contrasts)
-  else matrix(, NROW(Y), 0L)
+  } else {
+    matrix(, NROW(Y), 0L)
+  }
 
   # scaling model.matrix except for the intercept
-  X[,-1] <- scale(X[, -1])
+  X[, -1] <- scale(X[, -1])
 
   weights <- as.vector(stats::model.weights(mf))
-  if (!is.null(weights) && !is.numeric(weights))
+  if (!is.null(weights) && !is.numeric(weights)) {
     stop("'weights' must be a numeric vector")
-  if (!is.null(weights) && any(weights < 0))
+  }
+  if (!is.null(weights) && any(weights < 0)) {
     stop("negative weights not allowed")
+  }
   offset <- as.vector(stats::model.offset(mf))
   if (!is.null(offset)) {
-    if (length(offset) != NROW(Y))
-      stop(gettextf("number of offsets is %d should equal %d (number of observations)",
-                    length(offset), NROW(Y)), domain = NA)
+    if (length(offset) != NROW(Y)) {
+      stop(gettextf(
+        "number of offsets is %d should equal %d (number of observations)",
+        length(offset), NROW(Y)
+      ), domain = NA)
+    }
   }
   mustart <- stats::model.extract(mf, "mustart")
   etastart <- stats::model.extract(mf, "etastart")
   fit <- eval(call(if (is.function(method)) "method" else method,
-                   x = X, y = Y, weights = weights, start = start, etastart = etastart,
-                   mustart = mustart, offset = offset, family = family,
-                   control = control, intercept = attr(mt, "intercept") >
-                     0L, singular.ok = singular.ok))
+    x = X, y = Y, weights = weights, start = start, etastart = etastart,
+    mustart = mustart, offset = offset, family = family,
+    control = control, intercept = attr(mt, "intercept") >
+      0L, singular.ok = singular.ok
+  ))
   if (length(offset) && attr(mt, "intercept") > 0L) {
     fit2 <- eval(call(if (is.function(method)) "method" else method,
-                      x = X[, "(Intercept)", drop = FALSE], y = Y, mustart = fit$fitted.values,
-                      weights = weights, offset = offset, family = family,
-                      control = control, intercept = TRUE))
-    if (!fit2$converged)
+      x = X[, "(Intercept)", drop = FALSE], y = Y, mustart = fit$fitted.values,
+      weights = weights, offset = offset, family = family,
+      control = control, intercept = TRUE
+    ))
+    if (!fit2$converged) {
       warning("fitting to calculate the null deviance did not converge -- increase 'maxit'?")
+    }
     fit$null.deviance <- fit2$deviance
   }
-  if (model)
+  if (model) {
     fit$model <- mf
+  }
   fit$na.action <- attr(mf, "na.action")
-  if (x)
+  if (x) {
     fit$x <- X
-  if (!y)
+  }
+  if (!y) {
     fit$y <- NULL
-  final_obj <- structure(c(fit, list(call = cal, formula = formula, terms = mt,
-                        data = data, offset = offset, control = control, method = method,
-                        contrasts = attr(X, "contrasts"), xlevels = stats::.getXlevels(mt,
-                                                                                mf))),
-            class = c(fit$class, c("glm", "lm")))
+  }
+  final_obj <- structure(
+    c(fit, list(
+      call = cal, formula = formula, terms = mt,
+      data = data, offset = offset, control = control, method = method,
+      contrasts = attr(X, "contrasts"), xlevels = stats::.getXlevels(
+        mt,
+        mf
+      )
+    )),
+    class = c(fit$class, c("glm", "lm"))
+  )
 
   # obtaining variance covariance matrix of coefficients
   beta_vcov <- stats::vcov(final_obj)
@@ -151,24 +180,28 @@ REACT.glm <- function(formula, family = stats::gaussian, data, weights, subset, 
 
   # adding to final obj the variable selection analysis
   p <- ncol(beta_vcov)
-  if(!(length(tol) == 1 || length(tol) == p))
+  if (!(length(tol) == 1 || length(tol) == p)) {
     stop("Tolerance must be a vector of same size than the number of parameters or 1")
+  }
 
   # obtaining Confidence Intervals from ellipsis projection
-  CI_s <- cbind(final_obj$coefficients - sqrt(stats::qchisq(1 - alpha, p)*diag(beta_vcov)),
-                final_obj$coefficients + sqrt(stats::qchisq(1 - alpha, p)*diag(beta_vcov)))
+  CI_s <- cbind(
+    final_obj$coefficients - sqrt(stats::qchisq(1 - alpha, p) * diag(beta_vcov)),
+    final_obj$coefficients + sqrt(stats::qchisq(1 - alpha, p) * diag(beta_vcov))
+  )
 
   # analysing if each CI is inside each region of equivalence or not
-  conduct_base_test <- function(CI, tol){
+  conduct_base_test <- function(CI, tol) {
     base_test(CI, tol, verbose = FALSE)$test_outcome
   }
-  if(length(tol) == 1)
+  if (length(tol) == 1) {
     tol <- rep(tol, p)
+  }
 
   # TODO: use another loop function instead of for
   # obtaining all results
   all_res <- character(p)
-  for(i in 1:p){
+  for (i in 1:p) {
     all_res[i] <- base_test(CI_s[i, ], tol[i], verbose = FALSE)$test_outcome
   }
   var_names <- rownames(CI_s)
@@ -176,7 +209,7 @@ REACT.glm <- function(formula, family = stats::gaussian, data, weights, subset, 
   n_signif_variables <- var_names[which(all_res == "accept")]
   agnostic_variables <- var_names[which(all_res == "remain agnostic")]
 
-  if(verbose){
+  if (verbose) {
     cat("REACT results:\n")
     cat("Fixed tolerances:", tol)
     cat("\n")
@@ -188,9 +221,11 @@ REACT.glm <- function(formula, family = stats::gaussian, data, weights, subset, 
     cat("\n")
     cat("Some Confidence intervals (matrix form):")
     cat("\n")
-    print(if(nrow(CI_s) <= 10){
-      CI_s}else{
-        CI_s[1:10, ]})
+    print(if (nrow(CI_s) <= 10) {
+      CI_s
+    } else {
+      CI_s[1:10, ]
+    })
   }
 
   # adding results to glm object
@@ -204,16 +239,21 @@ REACT.glm <- function(formula, family = stats::gaussian, data, weights, subset, 
 }
 
 # print function
-print.REACT.glm <- function (x, digits = max(3L, getOption("digits") - 3L), ...)
-{
+#' @export
+print.REACT.glm <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
-      "\n\n", sep = "")
+    "\n\n",
+    sep = ""
+  )
   if (length(stats::coef(x))) {
     cat("Coefficients:\n")
-    print.default(format(stats::coef(x), digits = digits), print.gap = 2L,
-                  quote = FALSE)
+    print.default(format(stats::coef(x), digits = digits),
+      print.gap = 2L,
+      quote = FALSE
+    )
+  } else {
+    cat("No coefficients\n")
   }
-  else cat("No coefficients\n")
   cat("\n")
   invisible(x)
 }
@@ -222,4 +262,3 @@ print.REACT.glm <- function (x, digits = max(3L, getOption("digits") - 3L), ...)
 
 
 # TODO: plot function
-

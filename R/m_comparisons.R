@@ -13,6 +13,8 @@
 #' (default is NA)
 #' @param ncol Number of columns for multiple plotting. If NA, we choose based on vector length
 #' (default is NA)
+#' @param x_lims x-axis limits for each plot. If NA, we choose based on data (default is NA)
+#' @param y_lims y-axis limits for each plot. If NA, we choose based on data (default is NA)
 #' @return A list with each parameter comparisons ggplot-based plots
 #' @export
 #'
@@ -20,13 +22,15 @@
 m_comparisons <- function(alpha = 0.05,
                           nrow = NA,
                           ncol = NA,
+                          x_lims = NA,
+                          y_lims = NA,
                           invert = FALSE,
                           tol, par,
-                          f_matrix){
+                          f_matrix) {
   # variance covariance matrix
-  if(invert){
-  f_var_cov <- solve(f_matrix)
-  }else{
+  if (invert) {
+    f_var_cov <- solve(f_matrix)
+  } else {
     f_var_cov <- f_matrix
   }
   # counting
@@ -34,8 +38,8 @@ m_comparisons <- function(alpha = 0.05,
   q <- stats::qchisq(1 - alpha, length(par))
   plot_list <- list()
 
-  for(i in 1:(nrow(var_cov) - 1)){
-    for(j in (i + 1):nrow(var_cov)){
+  for (i in 1:(nrow(var_cov) - 1)) {
+    for (j in (i + 1):nrow(var_cov)) {
       new_cov <- f_var_cov[c(i, j), c(i, j)]
       new_par <- par[c(i, j)]
       q <- qchisq(1 - alpha, nrow(var_cov))
@@ -44,108 +48,154 @@ m_comparisons <- function(alpha = 0.05,
       vecs <- eig$Q
       eigs <- eig$EValues
 
-      main_eigenvec <- vecs[,1]
+      main_eigenvec <- vecs[, 1]
 
       # minor and major axis
-      a <- sqrt(eigs[1]*q)
-      b <- sqrt(eigs[2]*q)
+      a <- sqrt(eigs[1] * q)
+      b <- sqrt(eigs[2] * q)
 
-      angle = atan2(main_eigenvec[2], main_eigenvec[1])
+      angle <- atan2(main_eigenvec[2], main_eigenvec[1])
 
       # diferrences between two means to increase xlab and ylab
 
-      points <- DescTools::DrawEllipse(x = new_par[1], y = new_par[2],
-                                       radius.x = a, radius.y = b,
-                                       rot = angle, plot = FALSE, nv = 1000)
+      points <- DescTools::DrawEllipse(
+        x = new_par[1], y = new_par[2],
+        radius.x = a, radius.y = b,
+        rot = angle, plot = FALSE, nv = 1000
+      )
 
       # using the points to determine whether the ellipse is intercepted by one of the lines
       # above line
-      check_ellipse <- function(c1, c2, a, b, theta, tol){
-        A <- ((cos(theta)^2/a^2) + (sin(theta)^2/b^2))
-        B <- (2*cos(theta)*sin(theta)*((1/a^2) - (1/b^2)))
-        C <- ((cos(theta)^2/b^2) + (sin(theta)^2/a^2))
+      check_ellipse <- function(c1, c2, a, b, theta, tol) {
+        A <- ((cos(theta)^2 / a^2) + (sin(theta)^2 / b^2))
+        B <- (2 * cos(theta) * sin(theta) * ((1 / a^2) - (1 / b^2)))
+        C <- ((cos(theta)^2 / b^2) + (sin(theta)^2 / a^2))
 
         # checking if it has solutions for each pragmatic bound
         C_1 <- A + B + C
-        C_2 <- ((tol - c1 - c2)*B) - (2*A*c1) + (C*((2*tol) - (2 * c2)))
-        C_3 <- ((A * (c1^2)) + (((-c1*tol) + (c1*c2))*B) +
-                  (C * (tol - c2)^2) - 1)
+        C_2 <- ((tol - c1 - c2) * B) - (2 * A * c1) + (C * ((2 * tol) - (2 * c2)))
+        C_3 <- ((A * (c1^2)) + (((-c1 * tol) + (c1 * c2)) * B) +
+          (C * (tol - c2)^2) - 1)
 
-        return((C_2^2) - (4*C_1*C_3))
+        return((C_2^2) - (4 * C_1 * C_3))
       }
       abv_roots <- check_ellipse(new_par[1], new_par[2], a, b, angle, tol)
       blw_roots <- check_ellipse(new_par[1], new_par[2], a, b, angle, -tol)
 
-      res <- ifelse(any(blw_roots > 0, abv_roots > 0), 1/2, 0)
+      res <- ifelse(any(blw_roots > 0, abv_roots > 0), 1 / 2, 0)
 
-      if(res == 0){
+      if (res == 0) {
         # checking if center of ellipse is inside pragmatic region
         inside <- ((new_par[1] - tol) <= new_par[2] & (new_par[1] + tol) >= new_par[2])
 
         # if is not inside, and is tangent, then agnostic
-        if(!inside & any(blw_roots == 0, abv_roots == 0)){
-          res <- 1/2
+        if (!inside & any(blw_roots == 0, abv_roots == 0)) {
+          res <- 1 / 2
           # if is inside, then accept
-        }else if(inside){
+        } else if (inside) {
           res <- 0
           # if not inside, then reject
-        }else{
+        } else {
           res <- 1
         }
       }
 
       cols <- factor(res,
-                     levels = c(0, 1/2, 1),
-                     labels = c("Accept", "Agnostic", "Reject"))
+        levels = c(0, 1 / 2, 1),
+        labels = c("Accept", "Agnostic", "Reject")
+      )
 
       # plotting based on res
       # points data
-      tex_title = latex2exp::TeX(paste0("$\\theta_", i,  "$ and $\\theta_", j, "$"))
-      tex_xlab = latex2exp::TeX(paste0("$\\theta_", i, "$"))
-      tex_ylab = latex2exp::TeX(paste0("$\\theta_", j, "$"))
+      tex_title <- latex2exp::TeX(paste0("$\\theta_", i, "$ and $\\theta_", j, "$"))
+      tex_xlab <- latex2exp::TeX(paste0("$\\theta_", i, "$"))
+      tex_ylab <- latex2exp::TeX(paste0("$\\theta_", j, "$"))
 
-      data_used <- data.frame(x = points$x,
-                              y = points$y,
-                              col = cols)
+      data_used <- data.frame(
+        x = points$x,
+        y = points$y,
+        col = cols
+      )
 
       # building data to construct pragmatic region
-      x_min <- min(data_used$x) - tol
-      x_max <- max(data_used$x) + tol
+      # setting x limits
+      if (!any(is.na(x_lims))) {
+        x_min <- x_lims[1] - tol
+        x_max <- x_lims[2] + tol
+      } else {
+        x_min <- min(data_used$x) - tol
+        x_max <- max(data_used$x) + tol
+      }
 
-      # adding y to each x between x_min and x_max
       y_1 <- seq(x_min - tol, x_max - tol, length.out = 300)
       y_2 <- seq(x_min + tol, x_max + tol, length.out = 300)
       x <- seq(x_min, x_max, length.out = 300)
-      prag_data <- data.frame(x = x,
-                              y_1 = y_1,
-                              y_2 = y_2)
+      prag_data <- data.frame(
+        x = x,
+        y_1 = y_1,
+        y_2 = y_2
+      )
 
       plot_list[[c]] <- ggplot2::ggplot(
-        ggplot2::aes(x = x, y = y, fill = col, colour = col), data = data_used) +
-        ggplot2::geom_polygon(alpha = 0.4)+
-        ggplot2::scale_color_manual(values=c("Accept" = "darkgreen",
-                                             "Agnostic" = "goldenrod",
-                                             "Reject" = "darkred"),
-                                    drop = FALSE) +
-        ggplot2::scale_fill_manual(values=c("Accept" = "darkgreen",
-                                            "Agnostic" = "goldenrod",
-                                            "Reject" = "darkred"),
-                                   drop = FALSE)+
+        ggplot2::aes(x = x, y = y, fill = col, colour = col),
+        data = data_used
+      ) +
+        ggplot2::geom_polygon(
+          alpha = 0.4,
+          show.legend = TRUE
+        ) +
+        ggplot2::scale_color_manual(
+          values = c(
+            "Accept" = "darkgreen",
+            "Agnostic" = "goldenrod",
+            "Reject" = "darkred"
+          ),
+          drop = FALSE
+        ) +
+        ggplot2::scale_fill_manual(
+          values = c(
+            "Accept" = "darkgreen",
+            "Agnostic" = "goldenrod",
+            "Reject" = "darkred"
+          ),
+          drop = FALSE
+        ) +
         ggplot2::geom_ribbon(ggplot2::aes(x = x, ymin = y_1, ymax = y_2),
-                    data = prag_data, inherit.aes = FALSE,
-                    fill = "dodgerblue3", alpha = 0.2)+
-        ggplot2::theme_bw()+
-        ggplot2::labs(x = tex_xlab,
-             y = tex_ylab,
-             title = tex_title,
-             colour = "Decision",
-             fill = "Decision")
+          data = prag_data, inherit.aes = FALSE,
+          fill = "dodgerblue3", alpha = 0.2
+        ) +
+        ggplot2::theme_bw() +
+        ggplot2::labs(
+          x = tex_xlab,
+          y = tex_ylab,
+          title = tex_title,
+          colour = "Decision",
+          fill = "Decision"
+        )
+
+      if ((!any(is.na(y_lims))) & (!any(is.na(x_lims)))) {
+        plot_list[[c]] <- plot_list[[c]] +
+          ggplot2::coord_cartesian(xlim = x_lims, ylim = y_lims)
+      } else {
+        if (!any(is.na(y_lims))) {
+          plot_list[[c]] <- plot_list[[c]] +
+            ggplot2::coord_cartesian(ylim = y_lims)
+        }
+
+        if (!any(is.na(x_lims))) {
+          plot_list[[c]] <- plot_list[[c]] +
+            ggplot2::coord_cartesian(xlim = x_lims)
+        }
+      }
 
       c <- c + 1
     }
   }
 
-  p <- ggpubr::ggarrange(plotlist = plot_list, nrow = nrow, ncol = ncol, common.legend = TRUE)
+  p <- ggpubr::ggarrange(
+    plotlist = plot_list,
+    nrow = nrow, ncol = ncol, common.legend = TRUE
+  )
   methods::show(p)
 
   invisible(plot_list)
